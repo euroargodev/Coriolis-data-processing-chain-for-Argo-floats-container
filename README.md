@@ -165,5 +165,5 @@ This demonstration will run the Coriolis-data-processing-chain-for-Argo-floats b
 
 
 After you have tried the demo floats, if you wish to use the decoder for your own floats you can follow the steps taken to run a sample BODC float.
-[Decoding a BODC-SAMPLE-FLOAT ](\decArgo_doc\Setup_and_running_decoder_with_sample_BODC_float/README.md)
+[Decoding a BODC-SAMPLE-FLOAT ](decArgo_doc\Setup_and_running_decoder_with_sample_BODC_float/README.md)
 
