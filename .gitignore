@@ -9,3 +9,4 @@ decArgo_soft/soft/misc/woa13_all_n00_01.nc
 .env*
 !.env.demo
 !.env.docs
+*.bin

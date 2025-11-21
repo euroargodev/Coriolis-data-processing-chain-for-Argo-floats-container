@@ -1,0 +1,75 @@
+From sbdservice@sbd.iridium.com  Mon May 27 09:04:43 2019
+Return-Path: <sbdservice@sbd.iridium.com>
+X-Original-To: co_float_iridium_sbd@voo-curacao
+Delivered-To: co_float_iridium_sbd@voo-curacao.ifremer.fr
+Received: from gwyddion.ifremer.fr (gwyddion [134.246.155.220])
+	by voo-curacao (Postfix) with ESMTP id B981DA805F;
+	Mon, 27 May 2019 09:04:43 +0000 (UTC)
+Received: by gwyddion.ifremer.fr (Postfix)
+	id B595D400FB8; Mon, 27 May 2019 11:04:43 +0200 (CEST)
+Delivered-To: co_iridium@ifremer.fr
+Received: from guernesey.ifremer.fr (guernesey.ifremer.fr [134.246.142.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by gwyddion.ifremer.fr (Postfix) with ESMTPS id B327940174C
+	for <co_iridium@ifremer.fr>; Mon, 27 May 2019 11:04:43 +0200 (CEST)
+Received-SPF: Pass (sender SPF authorized) identity=mailfrom; client-ip=12.47.179.11; helo=istsbdmailsv03.sbd.iridium.com; envelope-from=sbdservice@sbd.iridium.com; receiver=co_iridium@ifremer.fr 
+Received: from istsbdmailsv03.sbd.iridium.com (outbound.sbd.iridium.com [12.47.179.11])
+	by guernesey.ifremer.fr (Postfix) with ESMTP id 588A8100DC17
+	for <co_iridium@ifremer.fr>; Mon, 27 May 2019 11:04:43 +0200 (CEST)
+Received: from pps.filterd (istsbdmailsv03.sbd.iridium.com [127.0.0.1])
+	by istsbdmailsv03.sbd.iridium.com (8.15.0.59/8.15.0.59) with SMTP id x4R8xvT0013681
+	for <co_iridium@ifremer.fr>; Mon, 27 May 2019 09:04:42 GMT
+Received: from istsbdspp02.sbd.iridium.com (istsbdspp02.sbd.iridium.com [10.11.1.156])
+	by istsbdmailsv03.sbd.iridium.com with ESMTP id 2spwhct8gr-1
+	for <co_iridium@ifremer.fr>; Mon, 27 May 2019 09:04:42 +0000
+Received: from sbd.iridium.com (localhost [127.0.0.1])
+	by istsbdspp02.sbd.iridium.com (Postfix) with SMTP id 172FF1E1
+	for <co_iridium@ifremer.fr>; Mon, 27 May 2019 09:04:42 +0000 (GMT)
+Reply-To: <sbdservice@sbd.iridium.com>
+From: sbdservice@sbd.iridium.com
+To: co_iridium@ifremer.fr
+Subject: SBD Msg From Unit: 300234068508780
+MIME-Version: 1.0
+Content-Type: multipart/mixed;boundary="SBD.Boundary.605592468"
+Message-Id: <20190527090442.172FF1E1@istsbdspp02.sbd.iridium.com>
+Date: Mon, 27 May 2019 09:04:42 +0000 (GMT)
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=451
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1810050000 definitions=main-1905270064
+X-Miltered: at guernesey with ID 5CEBA82A.001 by Joe's j-chkmail (http : // j-chkmail dot ensmp dot fr)!
+X-j-chkmail-Enveloppe: 5CEBA82A.001 from outbound.sbd.iridium.com/null/null/istsbdmailsv03.sbd.iridium.com/<sbdservice@sbd.iridium.com>
+X-j-chkmail-Score: MSGID : 5CEBA82A.001 on guernesey.ifremer.fr : j-chkmail score : . : R=. U=. O=. B=0.000 -> S=0.000
+X-j-chkmail-Status: Ham
+
+SBM Message
+--SBD.Boundary.605592468
+Content-Type: text/plain;charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+
+MOMSN: 4
+MTMSN: 0
+Time of Session (UTC): Mon May 27 09:04:40 2019
+Session Status: 00 - Transfer OK
+Message Size (bytes): 300
+
+Unit Location: Lat = 47.79660 Long = -3.25982
+CEPradius = 3
+
+
+
+--SBD.Boundary.605592468
+Content-Type: application/x-zip-compressed; name="SBMmessage.sbd"
+Content-Disposition: attachment; filename="300234068508780_000004.sbd"
+Content-Transfer-Encoding: base64
+
+AAAAALjJSqMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+g
+AAAAAAAAAAkDNhsFEwB6lgAAAi8vIH0AAxEFYgEBACcAAAABAAAAAAAAAAAAAAQAAAAAAAAA
+AAAAAAAAAAAAAAAA2PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAQAAMwEA
+AQAACDYwGwUTAAAAAQAA/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAACQM4GwUTSqMAyAEs
+APAA8AIGAAEADAoD6AfQA+gH0AEH0AAKAMgBChkAPAAAAGQKAAUAAB4ABQMgCx1IHh4INAEH
+AiTIADIZAAAKWgIKLQEAIXgFgABnAAAAAAAAAAAA
+--SBD.Boundary.605592468--
+

@@ -1,0 +1,72 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      # Run on our main branch
+      - main
+  pull_request:
+    # Run for any pull requests
+  release:
+    types: [created]
+
+jobs:
+  python-linting:
+    uses: amrit-eu/ci-cd/.github/workflows/component-python-lint.yml@main
+    with:
+      context: decArgo_api
+  python-security:
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: amrit-eu/ci-cd/.github/workflows/component-python-security.yml@main
+    with:
+      context: decArgo_api
+  container-image-build:
+    needs: [python-linting, python-security]
+    uses: amrit-eu/ci-cd/.github/workflows/component-container-image.yml@main
+    with:
+      context: decArgo_api
+      image-path: ghcr.io/amrit-eu/coriolis-data-processing-chain-for-argo-floats-container/api@1.0.0
+  container-image-security:
+    needs: [container-image-build]
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: amrit-eu/ci-cd/.github/workflows/component-container-image-security.yml@main
+    with:
+      context: decArgo_api
+      image-path: ghcr.io/amrit-eu/coriolis-data-processing-chain-for-argo-floats-container/api@1.0.0
+
+#   publish-to-github-registry:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.13"  
+
+#       - name: Python Build
+#         run: |
+#           cd decArgo_api
+#           python -m pip install --upgrade pip
+#           pip install poetry
+#           poetry build
+#       - name: Publish to GitHub Packages
+#         env:
+#           TWINE_USERNAME: __token__
+#           TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+
+#           cd decArgo_api
+#           python -m pip install --upgrade pip
+#           pip install twine
+#           python -m twine upload \
+#           --repository-url https://pypi.pkg.github.com/amrit-eu \
+#           dist/*

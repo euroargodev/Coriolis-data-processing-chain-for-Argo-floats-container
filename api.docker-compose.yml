@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+
+  runtime-matlab:
+    container_name: decoder-runtime-matlab
+    image: ghcr.io/euroargodev/coriolis-data-processing-chain-for-argo-floats/runtime/matlab:R2022b
+    user: root
+    volumes:
+      - runtime-matlab-volume:/matlab/runtime:rw
+    
+
+  decode-float:
+    container_name: decode-floatwmo
+    image: float-decoder:latest
+    entrypoint: ["uvicorn", "decoder_bindings.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/decoder_bindings"]
+    user: root
+    volumes:
+      - runtime-matlab-volume:/mnt/runtime:ro
+      - runtime-cache:/mnt/runtime-cache:rw
+      - ./decArgo_api/decoder_bindings:/app/decoder_bindings
+    depends_on:
+      - runtime-matlab
+    ports:
+      - "8000:8000"
+
+volumes:
+  runtime-matlab-volume:
+  runtime-cache:
