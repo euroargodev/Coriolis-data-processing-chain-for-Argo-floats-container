@@ -158,7 +158,7 @@ This demonstration will run the Coriolis-data-processing-chain-for-Argo-floats b
 
 #### with Dockerized runtime environment
 
-1. Copy `.env.docs` as `.env` file to configure the decoder for the demonstration.
+1. Copy `.env.demo` as `.env` file to configure the decoder for the demonstration.
 
 2. Run decoder demo with matlab runtime thanks to docker compose
 
