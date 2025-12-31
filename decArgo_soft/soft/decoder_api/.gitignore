@@ -1,0 +1,14 @@
+.env
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.pyc
+*.log.*
+env
+venv
+.venv
+.idea/*
+venv/
+
+__pycache__/
+.ruff_cache/

@@ -1,0 +1,7 @@
+services:
+  decode-float:
+    image: coriolis-data-processing-chain-for-argo-floats-container-python-binding
+    build:
+      context: .
+      target: python-runtime
+    entrypoint: ["python3", "-u", "decoder_bindings/main.py"]

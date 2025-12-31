@@ -58,5 +58,5 @@ export DECODER_COMMAND=$(
     PROCESS_REMAINING_BUFFERS 1
 )
 
-docker compose -f compose.yml --profile default --profile matlab down
-docker compose -f compose.yml --profile default --profile matlab up --build
+docker compose --profile default --profile matlab down
+docker compose --profile default --profile matlab up --build

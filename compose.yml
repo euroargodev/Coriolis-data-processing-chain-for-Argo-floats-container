@@ -1,0 +1,31 @@
+services:
+  # Matlab runtime environment
+  runtime-matlab:
+    profiles: ["matlab"]
+    image: ${RUNTIME_IMAGE}:${RUNTIME_IMAGE_TAG}
+    volumes:
+      - runtime-matlab-volume:/matlab/runtime:rw
+  decode-float:
+    image: coriolis-data-processing-chain-for-argo-floats-container
+    build:
+      context: .
+      target: runtime
+    user: ${USER_ID}:${GROUP_ID}
+    group_add:
+      - gbatch
+    volumes:
+      - ${DECODER_RUNTIME_VOLUME:-runtime-matlab-volume}:/mnt/runtime:ro
+      - ${DECODER_DATA_INPUT_VOLUME}:/mnt/data/rsync:rw
+      - ${DECODER_DATA_CONF_VOLUME}:/mnt/data/config:ro
+      - ${DECODER_DATA_OUTPUT_VOLUME}:/mnt/data/output:rw
+      - ${DECODER_REF_GREYLIST_FILE}:/tmp/ar_greylist.txt:ro
+    command: ${DECODER_COMMAND}
+    depends_on:
+      runtime-matlab:
+        condition: service_started
+        required: false
+
+volumes:
+  runtime-matlab-volume:
+    name: runtime-matlab-volume 
+  

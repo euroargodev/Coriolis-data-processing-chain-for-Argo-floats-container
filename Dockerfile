@@ -16,7 +16,7 @@ COPY decArgo_soft/config/_techParamNames ./config/_techParamNames
 
 FROM gitlab-registry.ifremer.fr/ifremer-commons/docker/images/ubuntu:22.04 AS runtime
 
-# confifurable arguments
+# configurable arguments
 ARG RUN_FILE=run_decode_argo_2_nc_rt.sh
 ARG GROUPID=9999
 ARG DATA_DIR=/mnt/data
@@ -64,6 +64,33 @@ RUN \
     chmod -R 770 ${APP_DIR} /mnt
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+
+FROM runtime AS python-runtime
+
+WORKDIR /app
+
+COPY decArgo_soft/soft/decoder_api .
+
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    python3 -m pip install --upgrade pip && \
+    rm -rf /var/lib/apt/lists/* && \ 
+    pip install "poetry~=1.8.0" && \
+    poetry config virtualenvs.create false && \
+    poetry install
+
+COPY --from=development /tmp .
+# TODO : need to be remove after fix
+COPY decArgo_soft/exec/run_decode_argo_2_nc_rt.tmp.sh run_decode_argo_2_nc_rt.sh   
+
+
+# Second ticket, add the API layer:
+# 1. Install the API package
+# 2. Set up a Gunicorn entrypoint to replace the original script
+
+# ENTRYPOINT ["/path/to/gunicorn"]
+# CMD: ["your", "gunicorn", "args"]
+
 
 # classique runtime image
 # FROM runtime-base AS runtime
