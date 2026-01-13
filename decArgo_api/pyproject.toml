@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "decoder_bindings"
+version = "0.1.0"
+description = "Bindings for the Decoder written in Python"
+authors = ["James Clare <jamclar@noc.ac.uk>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+poetry-dynamic-versioning = "^1.1.0"
+pydantic = "^2.11.9"
+docker = "^7.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.setuptools.packages.find]
+namespaces = false
+
+[tool.poetry.scripts]
+decoder = "decoder_bindings.main:main"
+
+
+[tool.poetry.group.lint]
+optional = true
+
+[tool.poetry.group.lint.dependencies]
+ruff = "^0.4.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.2"
+pyright = "1.1.401"
+pytest = "^7.3.0"
+pytest-mock= "3.15.1"
+pytest-cov = "^4.0.0"
+coverage = {extras = ["xml"], version = "^7.2.5"}
+twine = "^4.0.2"
+taskipy = "^1.14.1"
+
+[tool.taskipy.tasks]
+lint = "ruff check decoder_bindings"
+lint_fix = "ruff check decoder_bindings --fix"
+format = "ruff format decoder_bindings"
+types = "pyright decoder_bindings"
+tests = """
+coverage run -m  --source decoder_bindings --data-file=.coverage --omit tests/* pytest && \
+coverage report -m --data-file=.coverage --skip-covered
+"""
