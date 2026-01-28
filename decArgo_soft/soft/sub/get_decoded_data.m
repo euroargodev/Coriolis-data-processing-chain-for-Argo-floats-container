@@ -28,7 +28,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   12/17/2018 - RNU - creation
@@ -58,7 +58,7 @@ global g_decArgo_floatNum;
 % current cycle number
 global g_decArgo_cycleNum;
 
-% array ro store statistics on received packets
+% array to store statistics on received packets
 global g_decArgo_nbDescentPacketsReceived;
 global g_decArgo_nbParkPacketsReceived;
 global g_decArgo_nbAscentPacketsReceived;
@@ -79,7 +79,7 @@ global g_decArgo_7TypePacketReceivedCyNum;
 switch (a_decoderId)
    
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   case {212, 222} % Arvor-ARN-Ice Iridium
+   case {212, 222, 231} % Arvor-ARN-Ice Iridium
       
       g_decArgo_nbDescentPacketsReceived = 0;
       g_decArgo_nbParkPacketsReceived = 0;
@@ -377,11 +377,12 @@ switch (a_decoderId)
       end      
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   case {214, 217, 223, 225}
+   case {214, 217, 223, 225, 232}
       % Provor-ARN-DO-Ice Iridium 5.75
       % Arvor-ARN-DO-Ice Iridium 5.46
       % Arvor-ARN-DO-Ice Iridium 5.48
       % Provor-ARN-DO-Ice Iridium 5.76
+      % Arvor-ARN-Ice Iridium 5.54
 
       g_decArgo_nbDescentPacketsReceived = 0;
       g_decArgo_nbParkPacketsReceived = 0;
@@ -832,6 +833,90 @@ switch (a_decoderId)
          end
       end
       
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   case {230} % Arvor-Deep-Ice Iridium 5.77 (2DO)
+      
+      g_decArgo_nbDescentPacketsReceived = 0;
+      g_decArgo_nbParkPacketsReceived = 0;
+      g_decArgo_nbAscentPacketsReceived = 0;
+      g_decArgo_nbHydraulicPacketsReceived = 0;
+      g_decArgo_nbTech1PacketsReceived = 0;
+      g_decArgo_nbTech2PacketsReceived = 0;
+      g_decArgo_nbParam1PacketsReceived = 0;
+      g_decArgo_nbParam2PacketsReceived = 0;
+      g_decArgo_nbNearSurfacePacketsReceived = 0;
+      g_decArgo_nbInAirPacketsReceived = 0;
+      
+      % clean duplicates in received data
+      a_decDataTab = clean_duplicates_in_received_data(a_decDataTab, a_decoderId);
+      
+      % retrieve data and update counters
+      for idSbd = 1:length(a_decDataTab)
+         
+         switch (a_decDataTab(idSbd).packType)
+            
+            case 0
+               % technical packet #1
+               o_tabTech1 = [o_tabTech1; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbTech1PacketsReceived = g_decArgo_nbTech1PacketsReceived + 1;
+               
+            case 4
+               % technical packet #2
+               o_tabTech2 = [o_tabTech2; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbTech2PacketsReceived = g_decArgo_nbTech2PacketsReceived + 1;
+                              
+            case 30
+               % CTDO packets
+               o_dataCTDO = [o_dataCTDO; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbDescentPacketsReceived = g_decArgo_nbDescentPacketsReceived + 1;
+               
+            case 31
+               % CTDO packets
+               o_dataCTDO = [o_dataCTDO; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbParkPacketsReceived = g_decArgo_nbParkPacketsReceived + 1;
+               
+            case 32
+               % CTDO packets
+               o_dataCTDO = [o_dataCTDO; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbAscentPacketsReceived = g_decArgo_nbAscentPacketsReceived + 1;
+               
+            case 33
+               % CTDO packets
+               o_dataCTDO = [o_dataCTDO; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbNearSurfacePacketsReceived = g_decArgo_nbNearSurfacePacketsReceived + 1;
+               
+            case 34
+               % CTDO packets
+               o_dataCTDO = [o_dataCTDO; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbInAirPacketsReceived = g_decArgo_nbInAirPacketsReceived + 1;
+               
+            case 5
+               % parameter packet #1
+               o_floatParam1 = [o_floatParam1; a_decDataTab(idSbd).decData{:}];
+               g_decArgo_nbParam1PacketsReceived = g_decArgo_nbParam1PacketsReceived + 1;
+               
+            case 6
+               % EV or pump packet
+               decData = a_decDataTab(idSbd).decData;
+               o_evAct = [o_evAct; decData{1}{:}];
+               o_pumpAct = [o_pumpAct; decData{2}{:}];
+               g_decArgo_nbHydraulicPacketsReceived = g_decArgo_nbHydraulicPacketsReceived + 1;
+               
+            case 7
+               % parameter packet #2
+               o_floatParam2 = [o_floatParam2; a_decDataTab(idSbd).decData{:}];
+               
+               if (isempty(g_decArgo_7TypePacketReceivedCyNum))
+                  g_decArgo_7TypePacketReceivedCyNum = g_decArgo_cycleNum;
+                  fprintf('Float #%d, Cycle #%d: ICE mode activated at cycle %d\n', ...
+                     g_decArgo_floatNum, g_decArgo_cycleNum, ...
+                     g_decArgo_7TypePacketReceivedCyNum);
+               else
+                  g_decArgo_nbParam2PacketsReceived = g_decArgo_nbParam2PacketsReceived + 1;
+               end
+         end
+      end
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    case {219, 220} % Arvor-C 5.3 & 5.301
       

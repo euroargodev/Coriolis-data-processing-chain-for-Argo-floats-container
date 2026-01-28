@@ -52,7 +52,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/13/2024 - RNU - creation
@@ -101,71 +101,75 @@ if (~isempty(a_cycleTimeData.transStartDateAdj))
 else
    transStartDate = a_cycleTimeData.transStartDate;
 end
-iceDetected = a_cycleTimeData.iceDetected;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SBE41
 
-% look for the CTD pump cut-off pressure
-presCutOffProf = [];
-tabTech = [];
-% if the float surfaced we use the last pumped PRES from the tech msg;
-% otherwise, as the "subsurface point" is not the "last pumped PRES", we use the
-% configuration parameter
-if (~isempty(a_tabTech2) && (iceDetected == 0))
-   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROFILE CTD CUT OFF PRESSURE DETERMINATION
+
+% retrieve the pressure of the "subsurface point" (last pumped raw PTS meas)
+subSurfacePres = '';
+if (~isempty(a_tabTech2))
+
    % retrieve the last pumped PRES from the tech msg
    if (size(a_tabTech2, 1) > 1)
-      fprintf('WARNING: Float #%d cycle #%d: %d tech message in the buffer - using the last one\n', ...
+      fprintf('WARNING: Float #%d cycle #%d: %d tech message #2 in the buffer - using the last one\n', ...
          g_decArgo_floatNum, g_decArgo_cycleNum, ...
          size(a_tabTech2, 1));
    end
-   tabTech = a_tabTech2(end, :);
-   pres = sensor_2_value_for_pressure_201_203_215_216_218_221_228_229(tabTech(11));
-   temp = sensor_2_value_for_temperature_2xx_1_to_3_15_16_18_21_28_29(tabTech(12));
-   psal = tabTech(13)/1000;
+   tabTech2 = a_tabTech2(end, :);
+   pres = sensor_2_value_for_pressure_201_203_215_216_218_221_228_229_230(tabTech2(11));
+   temp = sensor_2_value_for_temp_2xx_1_to_3_15_16_18_21_28_29_30(tabTech2(12));
+   psal = tabTech2(13)/1000;
    if (any([pres temp psal] ~= 0))
-      presCutOffProf = pres;
+      % A specific bin is created after the pressure of the ‘subsurface point’
+      % (PSubsurfacePoint).so that pumped and unpumped data are not mixed in the
+      % bin-averaged output values.
+      subSurfacePres = pres;
    end
 end
-if (isempty(presCutOffProf))
-   
+if (isempty(subSurfacePres))
    % retrieve the CTD pump cut-off pressure from the configuration
    [configNames, configValues] = get_float_config_ir_sbd(g_decArgo_cycleNum);
-   ctpPumpSwitchOffPres = get_config_value('CONFIG_PX01', configNames, configValues);
+   ctpPumpSwitchOffPres = get_config_value('CONFIG_PT20', configNames, configValues);
    if (~isempty(ctpPumpSwitchOffPres))
-      presCutOffProf = ctpPumpSwitchOffPres + 0.5;
-      
-      if (iceDetected == 0)
-         fprintf('DEC_WARNING: Float #%d Cycle #%d: PRES_CUT_OFF_PROF parameter is missing in the tech data - value retrieved from the configuration\n', ...
-            g_decArgo_floatNum, g_decArgo_cycleNum);
-      end
+      % PT20 is CTD pump cut-off pressure we should add Poverlap = 0.5 dbar
+      presCutOffProfConfig = ctpPumpSwitchOffPres + 0.5;
    else
-      presCutOffProf = 5 + 0.5;
-      
-      fprintf('DEC_WARNING: Float #%d Cycle #%d: PRES_CUT_OFF_PROF parameter is missing in the tech data and in the configuration - value set to 5 dbars\n', ...
-         g_decArgo_floatNum, g_decArgo_cycleNum);
+      presCutOffProfConfig = 5 + 0.5;
    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+tabTech3 = [];
+if (~isempty(a_tabTech3))
+   if (size(a_tabTech3, 1) > 1)
+      fprintf('WARNING: Float #%d cycle #%d: %d tech message #3 in the buffer - using the last one\n', ...
+         g_decArgo_floatNum, g_decArgo_cycleNum, ...
+         size(a_tabTech3, 1));
+   end
+   tabTech3 = a_tabTech3(end, :);
 end
 
 % process the descending and ascending profiles
 for idProf = 1:3
-   
+
    tabDate = [];
    tabDateAdj = [];
    tabPres = [];
    tabTemp = [];
    tabSal = [];
-   
+
    if (idProf == 1)
-      
+
       % descending profile
       tabDate = a_descProfDate;
       tabDateAdj = a_descProfDateAdj;
       tabPres = a_descProfPresSbe41;
       tabTemp = a_descProfTempSbe41;
       tabSal = a_descProfSalSbe41;
-      
+
       % profiles must be ordered chronologically (and finally from top to bottom
       % in the NetCDF files)
       tabDate = flipud(tabDate);
@@ -173,21 +177,26 @@ for idProf = 1:3
       tabPres = flipud(tabPres);
       tabTemp = flipud(tabTemp);
       tabSal = flipud(tabSal);
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         % number of expected profile bins in the descending profile
-         nbMeaslist = get_nb_meas_list_from_tech(tabTech, a_decoderId);
-         nbMeaslist(3:4) = [];
-         profileCompleted = sum(nbMeaslist) - length(a_descProfPresSbe41);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(11:15)) - length(a_descProfPresSbe41);
       end
    else
-      
-      % ascending profile      
+
+      % ascending profile
       if (idProf == 2)
          % primary profile
-         idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 > presCutOffProf));
+         if (~isempty(subSurfacePres))
+            if (ismember(a_decoderId, [201:218, 221:223, 225, 228, 230]))
+               idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 > subSurfacePres)); % not compliant with Argo profile cookbook but historical implementation
+            else
+               idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 >= subSurfacePres));
+            end
+         else
+            idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 > presCutOffProfConfig));
+         end
          if (~isempty(idLev))
             tabDate = a_ascProfDate(1:idLev(end));
             tabDateAdj = a_ascProfDateAdj(1:idLev(end));
@@ -197,7 +206,15 @@ for idProf = 1:3
          end
       else
          % unpumped profile
-         idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 <= presCutOffProf));
+         if (~isempty(subSurfacePres))
+            if (ismember(a_decoderId, [201:218, 221:223, 225, 228, 230]))
+               idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 <= subSurfacePres)); % not compliant with Argo profile cookbook but historical implementation
+            else
+               idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 < subSurfacePres));
+            end
+         else
+            idLev = find((a_ascProfPresSbe41 ~= g_decArgo_presDef) & (a_ascProfPresSbe41 <= presCutOffProfConfig));
+         end
          if (~isempty(idLev))
             tabDate = a_ascProfDate(idLev(1):end);
             tabDateAdj = a_ascProfDateAdj(idLev(1):end);
@@ -206,20 +223,16 @@ for idProf = 1:3
             tabSal = a_ascProfSalSbe41(idLev(1):end);
          end
       end
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         % number of expected profile bins in the ascending profile
-         nbMeaslist = get_nb_meas_list_from_tech(tabTech, a_decoderId);
-         nbMeaslist(1:2) = [];
-         profileCompleted = sum(nbMeaslist) - length(a_ascProfPresSbe41);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(17:21)) - length(a_ascProfPresSbe41);
       end
-      
    end
-   
+
    if (~isempty(tabDate))
-      
+
       % create the profile structure
       primarySamplingProfileFlag = 1;
       if (idProf == 3)
@@ -233,35 +246,39 @@ for idProf = 1:3
       if (idProf == 1)
          profStruct.direction = 'D';
       end
-      
+
       % positioning system
       profStruct.posSystem = 'GPS';
-      
+
       % CTD pump cut-off pressure
-      profStruct.presCutOffProf = presCutOffProf;
-      
+      if (~isempty(subSurfacePres))
+         profStruct.presCutOffProf = subSurfacePres;
+      else
+         profStruct.presCutOffProf = presCutOffProfConfig;
+      end
+
       % create the parameters
       paramJuld = get_netcdf_param_attributes('JULD');
       paramPres = get_netcdf_param_attributes('PRES');
       paramTemp = get_netcdf_param_attributes('TEMP');
       paramSal = get_netcdf_param_attributes('PSAL');
-      
+
       % convert decoder default values to netCDF fill values
       tabDate(find(tabDate == g_decArgo_dateDef)) = paramJuld.fillValue;
       tabDateAdj(find(tabDateAdj == g_decArgo_dateDef)) = paramJuld.fillValue;
       tabPres(find(tabPres == g_decArgo_presDef)) = paramPres.fillValue;
       tabTemp(find(tabTemp == g_decArgo_tempDef)) = paramTemp.fillValue;
       tabSal(find(tabSal == g_decArgo_salDef)) = paramSal.fillValue;
-      
+
       % add parameter variables to the profile structure
       profStruct.paramList = [paramPres paramTemp paramSal];
       profStruct.dateList = paramJuld;
-      
+
       % add parameter data to the profile structure
       profStruct.data = [tabPres tabTemp tabSal];
       profStruct.dates = tabDate;
       profStruct.datesAdj = tabDateAdj;
-      
+
       % measurement dates
       if (any(tabDateAdj ~= paramJuld.fillValue))
          dates = tabDateAdj;
@@ -271,23 +288,23 @@ for idProf = 1:3
       dates(dates == paramJuld.fillValue) = [];
       profStruct.minMeasDate = min(dates);
       profStruct.maxMeasDate = max(dates);
-      
+
       % update the profile completed flag
       if (~isempty(nbMeaslist))
          profStruct.profileCompleted = profileCompleted;
       end
-      
+
       % add profile date and location information
-      [profStruct] = add_profile_date_and_location_201_to_229_2001_to_2003( ...
+      [profStruct] = add_profile_date_and_location_201_to_230_40x_2001_to_2003( ...
          profStruct, a_gpsData, a_iridiumMailData, ...
          descentToParkStartDate, ascentEndDate, transStartDate);
-      
+
       % add configuration mission number
       configMissionNumber = get_config_mission_number_ir_sbd(g_decArgo_cycleNum);
       if (~isempty(configMissionNumber))
          profStruct.configMissionNumber = configMissionNumber;
       end
-      
+
       o_tabProfiles = [o_tabProfiles profStruct];
    end
 end
@@ -295,79 +312,51 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SBE61
 
-% look for the CTD pump cut-off pressure
-presCutOffProf = [];
-tabTech = [];
-% if the float surfaced we use the last pumped PRES from the tech msg;
-% otherwise, as the "subsurface point" is not the "last pumped PRES", we use the
-% configuration parameter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROFILE CTD CUT OFF PRESSURE DETERMINATION
 
 % THE LAST PUMPED RAW MEASUREMENT PROVIDED IN TECH3 IS NOT USED BECAUSE IT SEEMS
 % NOT RELIABLE
-% if (~isempty(a_tabTech3) && (iceDetected == 0))
-% 
-%    % retrieve the last pumped PRES from the tech msg
-%    if (size(a_tabTech3, 1) > 1)
-%       fprintf('WARNING: Float #%d cycle #%d: %d tech message in the buffer - using the last one\n', ...
-%          g_decArgo_floatNum, g_decArgo_cycleNum, ...
-%          size(a_tabTech3, 1));
-%    end
-%    tabTech = a_tabTech3(end, :);
-%    pres = sensor_2_value_for_pressure_3T_228_2T_229(tabTech(46));
-%    temp = sensor_2_value_for_temperature_3T_228_2T_229(tabTech(47));
-%    psal = sensor_2_value_for_salinity_3T_228_2T_229(tabTech(48));
-%    if (any([pres temp psal] ~= 0))
-%       presCutOffProf = pres;
-%    end
-% end
 
-if (isempty(presCutOffProf))
-   
-   % retrieve the CTD pump cut-off pressure from the configuration
-   [configNames, configValues] = get_float_config_ir_sbd(g_decArgo_cycleNum);
-   ctpPumpSwitchOffPres = get_config_value('CONFIG_FR07', configNames, configValues);
-   if (~isempty(ctpPumpSwitchOffPres))
-      presCutOffProf = ctpPumpSwitchOffPres + 0.5;
-      
-      % if (iceDetected == 0)
-      %    fprintf('DEC_WARNING: Float #%d Cycle #%d: PRES_CUT_OFF_PROF parameter is missing in the tech data - value retrieved from the configuration\n', ...
-      %       g_decArgo_floatNum, g_decArgo_cycleNum);
-      % end
-   else
-      presCutOffProf = 5 + 0.5;
-      
-      fprintf('DEC_WARNING: Float #%d Cycle #%d: PRES_CUT_OFF_PROF parameter is missing in the tech data and in the configuration - value set to 5 dbars\n', ...
-         g_decArgo_floatNum, g_decArgo_cycleNum);
-   end
+% retrieve the CTD pump cut-off pressure from the configuration
+[configNames, configValues] = get_float_config_ir_sbd(g_decArgo_cycleNum);
+ctpPumpSwitchOffPres = get_config_value('CONFIG_FR07', configNames, configValues);
+if (~isempty(ctpPumpSwitchOffPres))
+   % FR07 is CTD pump cut-off pressure we should add Poverlap = 0.5 dbar
+   presCutOffProfConfig = ctpPumpSwitchOffPres + 0.5;
+else
+   presCutOffProfConfig = 5 + 0.5;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-if (isempty(presCutOffProf))
-
-   presCutOffProf = 5 + 0.5;
-
-   fprintf('DEC_WARNING: Float #%d Cycle #%d: PRES_CUT_OFF_PROF parameter is missing in the tech data and in the configuration - value set to 5 dbars\n', ...
-      g_decArgo_floatNum, g_decArgo_cycleNum);
+tabTech3 = [];
+if (~isempty(a_tabTech3))
+   if (size(a_tabTech3, 1) > 1)
+      fprintf('WARNING: Float #%d cycle #%d: %d tech message #3 in the buffer - using the last one\n', ...
+         g_decArgo_floatNum, g_decArgo_cycleNum, ...
+         size(a_tabTech3, 1));
+   end
+   tabTech3 = a_tabTech3(end, :);
 end
 
 % process the descending and ascending profiles
 for idProf = 1:3
-   
+
    tabDate = [];
    tabDateAdj = [];
    tabPres = [];
    tabTemp = [];
    tabSal = [];
-   
+
    if (idProf == 1)
-      
+
       % descending profile
       tabDate = a_descProfDate;
       tabDateAdj = a_descProfDateAdj;
       tabPres = a_descProfPresSbe61;
       tabTemp = a_descProfTempSbe61;
       tabSal = a_descProfSalSbe61;
-      
+
       % profiles must be ordered chronologically (and finally from top to bottom
       % in the NetCDF files)
       tabDate = flipud(tabDate);
@@ -375,18 +364,18 @@ for idProf = 1:3
       tabPres = flipud(tabPres);
       tabTemp = flipud(tabTemp);
       tabSal = flipud(tabSal);
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         profileCompleted = sum(tabTech(11:15)) - length(a_descProfPresSbe61);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(22:26)) - length(a_descProfPresSbe61);
       end
    else
-      
-      % ascending profile      
+
+      % ascending profile
       if (idProf == 2)
          % primary profile
-         idLev = find((a_ascProfPresSbe61 ~= g_decArgo_presDef) & (a_ascProfPresSbe61 > presCutOffProf));
+         idLev = find((a_ascProfPresSbe61 ~= g_decArgo_presDef) & (a_ascProfPresSbe61 > presCutOffProfConfig));
          if (~isempty(idLev))
             tabDate = a_ascProfDate(1:idLev(end));
             tabDateAdj = a_ascProfDateAdj(1:idLev(end));
@@ -396,7 +385,7 @@ for idProf = 1:3
          end
       else
          % unpumped profile
-         idLev = find((a_ascProfPresSbe61 ~= g_decArgo_presDef) & (a_ascProfPresSbe61 <= presCutOffProf));
+         idLev = find((a_ascProfPresSbe61 ~= g_decArgo_presDef) & (a_ascProfPresSbe61 <= presCutOffProfConfig));
          if (~isempty(idLev))
             tabDate = a_ascProfDate(idLev(1):end);
             tabDateAdj = a_ascProfDateAdj(idLev(1):end);
@@ -405,18 +394,17 @@ for idProf = 1:3
             tabSal = a_ascProfSalSbe61(idLev(1):end);
          end
       end
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         % number of expected profile bins in the ascending profile
-         profileCompleted = sum(tabTech(17:21)) - length(a_ascProfPresSbe61);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(28:32)) - length(a_ascProfPresSbe61);
       end
-      
+
    end
-   
+
    if (~isempty(tabDate))
-      
+
       % create the profile structure
       primarySamplingProfileFlag = 0;
       if (idProf == 3)
@@ -430,35 +418,35 @@ for idProf = 1:3
       if (idProf == 1)
          profStruct.direction = 'D';
       end
-      
+
       % positioning system
       profStruct.posSystem = 'GPS';
-      
+
       % CTD pump cut-off pressure
-      profStruct.presCutOffProf = presCutOffProf;
-      
+      profStruct.presCutOffProf = presCutOffProfConfig;
+
       % create the parameters
       paramJuld = get_netcdf_param_attributes('JULD');
-      paramPres = get_netcdf_param_attributes('PRES2');
-      paramTemp = get_netcdf_param_attributes('TEMP2');
-      paramSal = get_netcdf_param_attributes('PSAL2');
-      
+      paramPres = get_netcdf_param_attributes('PRES_2');
+      paramTemp = get_netcdf_param_attributes('TEMP_2');
+      paramSal = get_netcdf_param_attributes('PSAL_2');
+
       % convert decoder default values to netCDF fill values
       tabDate(find(tabDate == g_decArgo_dateDef)) = paramJuld.fillValue;
       tabDateAdj(find(tabDateAdj == g_decArgo_dateDef)) = paramJuld.fillValue;
       tabPres(find(tabPres == g_decArgo_presDef)) = paramPres.fillValue;
       tabTemp(find(tabTemp == g_decArgo_tempDef)) = paramTemp.fillValue;
       tabSal(find(tabSal == g_decArgo_salDef)) = paramSal.fillValue;
-      
+
       % add parameter variables to the profile structure
       profStruct.paramList = [paramPres paramTemp paramSal];
       profStruct.dateList = paramJuld;
-      
+
       % add parameter data to the profile structure
       profStruct.data = [tabPres tabTemp tabSal];
       profStruct.dates = tabDate;
       profStruct.datesAdj = tabDateAdj;
-      
+
       % measurement dates
       if (any(tabDateAdj ~= paramJuld.fillValue))
          dates = tabDateAdj;
@@ -468,23 +456,23 @@ for idProf = 1:3
       dates(dates == paramJuld.fillValue) = [];
       profStruct.minMeasDate = min(dates);
       profStruct.maxMeasDate = max(dates);
-      
+
       % update the profile completed flag
       if (~isempty(nbMeaslist))
          profStruct.profileCompleted = profileCompleted;
       end
-      
+
       % add profile date and location information
-      [profStruct] = add_profile_date_and_location_201_to_229_2001_to_2003( ...
+      [profStruct] = add_profile_date_and_location_201_to_230_40x_2001_to_2003( ...
          profStruct, a_gpsData, a_iridiumMailData, ...
          descentToParkStartDate, ascentEndDate, transStartDate);
-      
+
       % add configuration mission number
       configMissionNumber = get_config_mission_number_ir_sbd(g_decArgo_cycleNum);
       if (~isempty(configMissionNumber))
          profStruct.configMissionNumber = configMissionNumber;
       end
-      
+
       o_tabProfiles = [o_tabProfiles profStruct];
    end
 end
@@ -492,28 +480,28 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RBR
 
-tabTech = [];
+tabTech3 = [];
 if (~isempty(a_tabTech3))
    if (size(a_tabTech3, 1) > 1)
-      fprintf('WARNING: Float #%d cycle #%d: %d tech message #2 in the buffer - using the last one\n', ...
+      fprintf('WARNING: Float #%d cycle #%d: %d tech message #3 in the buffer - using the last one\n', ...
          g_decArgo_floatNum, g_decArgo_cycleNum, ...
          size(a_tabTech3, 1));
    end
-   tabTech = a_tabTech3(end, :);
+   tabTech3 = a_tabTech3(end, :);
 end
 
 % process the descending and ascending profiles
 for idProf = 1:2
-   
+
    tabDate = [];
    tabDateAdj = [];
    tabPres = [];
    tabTemp = [];
    tabSal = [];
    tabTempCndc = [];
-   
+
    if (idProf == 1)
-      
+
       % descending profile
       tabDate = a_descProfDate;
       tabDateAdj = a_descProfDateAdj;
@@ -521,7 +509,7 @@ for idProf = 1:2
       tabTemp = a_descProfTempRbr;
       tabSal = a_descProfSalRbr;
       tabTempCndc = a_descProfTempCndcRbr;
-      
+
       % profiles must be ordered chronologically (and finally from top to bottom
       % in the NetCDF files)
       tabDate = flipud(tabDate);
@@ -530,14 +518,14 @@ for idProf = 1:2
       tabTemp = flipud(tabTemp);
       tabSal = flipud(tabSal);
       tabTempCndc = flipud(tabTempCndc);
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         profileCompleted = sum(tabTech(34:38)) - length(a_descProfPresSbe61);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(34:38)) - length(a_descProfPresRbr);
       end
    else
-      
+
       % ascending profile
       tabDate = a_ascProfDate;
       tabDateAdj = a_ascProfDateAdj;
@@ -545,17 +533,17 @@ for idProf = 1:2
       tabTemp = a_ascProfTempRbr;
       tabSal = a_ascProfSalRbr;
       tabTempCndc = a_ascProfTempCndcRbr;
-      
+
       % update the profile completed flag
       nbMeaslist = [];
-      if (~isempty(tabTech))
-         profileCompleted = sum(tabTech(40:44)) - length(a_ascProfPresSbe61);
+      if (~isempty(tabTech3))
+         profileCompleted = sum(tabTech3(40:44)) - length(a_ascProfPresRbr);
       end
-      
+
    end
-   
+
    if (~isempty(tabDate))
-      
+
       % create the profile structure
       primarySamplingProfileFlag = 0;
       profStruct = get_profile_init_struct(g_decArgo_cycleNum, -1, -1, primarySamplingProfileFlag);
@@ -566,19 +554,19 @@ for idProf = 1:2
       if (idProf == 1)
          profStruct.direction = 'D';
       end
-      
+
       % positioning system
       profStruct.posSystem = 'GPS';
-            
+
       % create parameters data structure
       paramJuld = get_netcdf_param_attributes('JULD');
       tabDate(tabDate == g_decArgo_dateDef) = paramJuld.fillValue;
       tabDateAdj(tabDateAdj == g_decArgo_dateDef) = paramJuld.fillValue;
-      paramPres = get_netcdf_param_attributes('PRES3');
+      paramPres = get_netcdf_param_attributes('PRES_3');
       tabPres(tabPres == g_decArgo_presDef) = paramPres.fillValue;
-      paramTemp = get_netcdf_param_attributes('TEMP3');
+      paramTemp = get_netcdf_param_attributes('TEMP_3');
       tabTemp(tabTemp == g_decArgo_tempDef) = paramTemp.fillValue;
-      paramSal = get_netcdf_param_attributes('PSAL3');
+      paramSal = get_netcdf_param_attributes('PSAL_3');
       tabSal(tabSal == g_decArgo_salDef) = paramSal.fillValue;
       paramTempCndc = get_netcdf_param_attributes('TEMP_CNDC');
       tabTempCndc(tabTempCndc == g_decArgo_tempDef) = paramTempCndc.fillValue;
@@ -586,12 +574,12 @@ for idProf = 1:2
       % add parameter variables to the profile structure
       profStruct.paramList = [paramPres paramTemp paramSal paramTempCndc];
       profStruct.dateList = paramJuld;
-      
+
       % add parameter data to the profile structure
       profStruct.data = [tabPres tabTemp tabSal tabTempCndc];
       profStruct.dates = tabDate;
       profStruct.datesAdj = tabDateAdj;
-      
+
       % measurement dates
       if (any(tabDateAdj ~= paramJuld.fillValue))
          dates = tabDateAdj;
@@ -601,14 +589,14 @@ for idProf = 1:2
       dates(find(dates == paramJuld.fillValue)) = [];
       profStruct.minMeasDate = min(dates);
       profStruct.maxMeasDate = max(dates);
-      
+
       % update the profile completed flag
       if (~isempty(nbMeaslist))
          profStruct.profileCompleted = profileCompleted;
       end
-      
+
       % add profile date and location information
-      [profStruct] = add_profile_date_and_location_201_to_229_2001_to_2003( ...
+      [profStruct] = add_profile_date_and_location_201_to_230_40x_2001_to_2003( ...
          profStruct, a_gpsData, a_iridiumMailData, ...
          descentToParkStartDate, ascentEndDate, transStartDate);
 
@@ -617,7 +605,7 @@ for idProf = 1:2
       if (~isempty(configMissionNumber))
          profStruct.configMissionNumber = configMissionNumber;
       end
-      
+
       o_tabProfiles = [o_tabProfiles profStruct];
    end
 end

@@ -1,14 +1,14 @@
 #!/bin/bash
 
 DECODER_IMAGE=ghcr.io/euroargodev/coriolis-data-processing-chain-for-argo-floats-container # decoder image path
-DECODER_IMAGE_TAG=066a
+DECODER_IMAGE_TAG=082m
 
 DECODER_RUNTIME_VOLUME=/path-to-matlab-runtime/R2022b
 DECODER_DATA_INPUT_VOLUME=./decArgo_demo/input
 DECODER_DATA_CONF_VOLUME=./decArgo_demo/config
 DECODER_DATA_OUTPUT_VOLUME=./decArgo_demo/output
 # DECODER_REF_GEBCO_FILE=/path-to-gebco-file # optionnal
-# DECODER_REF_GREYLIST_FILE=/path-to-greylist-file # optionnal
+# DECODER_REF_EXCLUSION_FILE=/path-to-exclusion-file # optionnal
 
 USER_ID=$UID
 GROUP_ID=$(id -g $UID)

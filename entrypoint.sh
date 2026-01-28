@@ -27,10 +27,10 @@ if [ ! -d ${REF_DIR} ]; then
     exit 3
 fi
 
-# Comment this code as greylist no longer being available publicly, need to be mount on the container directly
-# wget -O /tmp/ar_greylist.txt https://data-argo.ifremer.fr/ar_greylist.txt || rm -f /tmp/ar_greylist.txt
-# if [ ! -f /tmp/ar_greylist.txt ]; then
-#     echo "[ERROR] TEST015_GREY_LIST_FILE file not found: file should had have downloaded here 'https://data-argo.ifremer.fr/ar_greylist.txt', please check if that this URL is reachable" >&2
+# Comment this code as exclusionlist no longer being available publicly, need to be mount on the container directly
+# wget -O /tmp/ar_exclusionlist.txt https://data-argo.ifremer.fr/ar_exclusionlist.txt || rm -f /tmp/ar_exclusionlist.txt
+# if [ ! -f /tmp/ar_exclusionlist.txt ]; then
+#     echo "[ERROR] TEST015_GREY_LIST_FILE file not found: file should had have downloaded here 'https://data-argo.ifremer.fr/ar_exclusionlist.txt', please check if that this URL is reachable" >&2
 #     exit 3
 # fi
 

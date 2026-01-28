@@ -26,7 +26,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   12/03/2014 - RNU - creation
@@ -512,7 +512,7 @@ if (a_procLevel ~= 0)
    if (g_decArgo_generateNcTech ~= 0)
       if (~isempty(o_tabTech))
          idFTech1 = find(o_tabTech(:, 1) == 0);
-         store_tech1_data_for_nc_201_to_203_215_216_218_228(o_tabTech(idFTech1, :), o_deepCycle);
+         store_tech1_data_for_nc_201_to_203_215_216_218_228_229(o_tabTech(idFTech1, :), o_deepCycle);
          idFTech2 = find(o_tabTech(:, 1) == 4);
          store_tech2_data_for_nc_202(o_tabTech(idFTech2, :), o_deepCycle);
       end
@@ -541,7 +541,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/03/2017 - RNU - creation
@@ -617,7 +617,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/29/2017 - RNU - creation
@@ -639,7 +639,7 @@ global g_decArgo_nbOf13Or11TypePacketReceived;
 global g_decArgo_nbOf14Or12TypePacketReceived;
 global g_decArgo_nbOf6TypePacketReceived;
 
-% array ro store statistics on received packets
+% array to store statistics on received packets
 global g_decArgo_nbDescentPacketsReceived;
 global g_decArgo_nbParkPacketsReceived;
 global g_decArgo_nbAscentPacketsReceived;

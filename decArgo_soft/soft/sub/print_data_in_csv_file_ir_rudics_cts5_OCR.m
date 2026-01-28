@@ -13,7 +13,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -89,7 +89,7 @@ for idP = 1:length(a_ocrData)
                g_decArgo_floatNum, ...
                treat);
       end
-   elseif (a_decoderId == 133)
+   elseif (ismember(a_decoderId, [133, 138, 139, 140]))
       switch (treat)
          case {'(RW)', '(AM)', '(DW)'}
             fprintf(g_decArgo_outputCsvFileId, '%d; %s; %s; %s; %s; %s; %s; -; Float time; Adj. float time; PRES (dbar); RAW_DOWNWELLING_IRRADIANCE380 (count); RAW_DOWNWELLING_IRRADIANCE443 (count); RAW_DOWNWELLING_IRRADIANCE490 (count); RAW_DOWNWELLING_IRRADIANCE555 (count)\n', ...

@@ -35,7 +35,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/10/2024 - RNU - creation
@@ -150,5 +150,12 @@ o_ascProfTempCndcRbr = o_ascProfTempCndcRbr(idSorted);
 o_ascProfPresSbe61 = o_ascProfPresSbe61(idSorted);
 o_ascProfTempSbe61 = o_ascProfTempSbe61(idSorted);
 o_ascProfSalSbe61 = o_ascProfSalSbe61(idSorted);
+
+% some levels of the SBE61 ascending profile are equal to 0, convert these
+% values to default ones (needed to create unpumped profile)
+idF = find((o_ascProfPresSbe61 == 0) & (o_ascProfTempSbe61 == 0) & (o_ascProfSalSbe61 == 0));
+o_ascProfPresSbe61(idF) = g_decArgo_presDef;
+o_ascProfTempSbe61(idF) = g_decArgo_tempDef;
+o_ascProfSalSbe61(idF) = g_decArgo_salDef;
 
 return

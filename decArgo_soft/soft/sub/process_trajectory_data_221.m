@@ -66,7 +66,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/02/2019 - RNU - creation
@@ -961,10 +961,10 @@ if (a_deepCycle == 1)
 
    end
 
-   if (~isempty(tabTech2) && (a_cycleTimeData.iceDetected == 0))
+   if (~isempty(tabTech2) && (a_cycleTimeData.iceAscentAbortedFlag == 0))
       % last pumped CTD measurement
-      pres = sensor_2_value_for_pressure_201_203_215_216_218_221_228_229(tabTech2(11));
-      temp = sensor_2_value_for_temperature_2xx_1_to_3_15_16_18_21_28_29(tabTech2(12));
+      pres = sensor_2_value_for_pressure_201_203_215_216_218_221_228_229_230(tabTech2(11));
+      temp = sensor_2_value_for_temp_2xx_1_to_3_15_16_18_21_28_29_30(tabTech2(12));
       psal = tabTech2(13)/1000;
       if (any([pres temp psal] ~= 0))
          measStruct = get_traj_one_meas_init_struct();
@@ -983,7 +983,7 @@ if (a_deepCycle == 1)
             c1PhaseDoxy = sensor_2_value_for_C1C2phase_ir_sbd_2xx(tabTech2(14));
             c2PhaseDoxy = sensor_2_value_for_C1C2phase_ir_sbd_2xx(tabTech2(15));
             tempDoxy = sensor_2_value_for_temp_doxy_ir_sbd_2xx(tabTech2(16));
-            doxy = compute_DOXY_201_203_206_209_213_to_218_221_223_225(c1PhaseDoxy, c2PhaseDoxy, tempDoxy, pres, temp, psal);
+            doxy = compute_DOXY_201_203_206_209_213_to_218_221_223_225_230_232(c1PhaseDoxy, c2PhaseDoxy, tempDoxy, pres, temp, psal);
 
             measStruct.paramData = [pres temp psal c1PhaseDoxy c2PhaseDoxy tempDoxy doxy];
 
@@ -1005,7 +1005,7 @@ if (a_deepCycle == 1)
    grounded = 'N';
    if (~isempty(a_cycleTimeData.firstGroundingPres))
       if (~isempty(a_cycleTimeData.firstGroundingDate))
-         [measStruct, ~] = create_one_meas_float_time_ter(...
+         [measStruct, ~] = create_one_meas_float_time_ter( ...
             g_MC_Grounded, a_cycleTimeData.firstGroundingDate, ...
             g_JULD_STATUS_2, floatClockDriftMin);
       else
@@ -1020,7 +1020,7 @@ if (a_deepCycle == 1)
    end
    if (~isempty(a_cycleTimeData.secondGroundingPres))
       if (~isempty(a_cycleTimeData.secondGroundingDate))
-         [measStruct, ~] = create_one_meas_float_time_ter(...
+         [measStruct, ~] = create_one_meas_float_time_ter( ...
             g_MC_Grounded, a_cycleTimeData.secondGroundingDate, ...
             g_JULD_STATUS_2, floatClockDriftMin);
       else
