@@ -29,7 +29,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -198,7 +198,7 @@ for idDir = 1:length(dirNames)
          % if (isempty(inputProfSFilePathName))
          %    fprintf('ERROR: Float %d: No input S-PROF file to report Qc file information - QC file not processed [Qc file: %s]\n', ...
          %       g_cocsq_floatNum, qcProfFilePathName);
-         % 
+         %
          %    if (g_cocsq_realtimeFlag == 1)
          %       g_cocsq_reportXmlStruct.input_ko = [g_cocsq_reportXmlStruct.input_ko {qcProfFilePathName}];
          %    end
@@ -399,7 +399,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -582,12 +582,12 @@ for idParam = 1:length(paramListToReport)
       profPresOffset = bProfData.PRES_OFFSET;
       profPresOffset(isnan(profPresOffset)) = 0;
       fileType = 'b';
-      % when DOXY2 is measured by a PTSO float, it is provided in the same
+      % when DOXY_2 is measured by a PTSO float, it is provided in the same
       % N_PROF as the DOXY measurements, however, the OPTODE_DOXY vertical
       % offset should not be used, use a vertical offset of 0
-      % this should not happen in a BGC float where DOXY2 is provided on its own
+      % this should not happen in a BGC float where DOXY_2 is provided on its own
       % N_PROF
-      if (strcmp(paramNamePrefix, 'DOXY2') && (size(profData, 2) == 2))
+      if (strcmp(paramNamePrefix, 'DOXY_2') && (size(profData, 2) == 2))
          profPresOffset = zeros(size(profPresOffset));
       end
    else
@@ -659,7 +659,7 @@ for idParam = 1:length(paramListToReport)
          end
          continue
       end
-         
+
       % retrieve <PARAM>_dPRES value in S-PROF
       % keep only Ids where <PARAM>_dPRES = 0
       if (~isempty(a_sProfFileName))
@@ -757,7 +757,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -776,7 +776,7 @@ wantedVars = [ ...
 [profData1] = get_data_from_nc_file(a_profFileName, wantedVars);
 
 % check the PROF file format version
-if (ismember(a_profFileType, [3 4 ])) % C-PROF and B-PROF
+if (ismember(a_profFileType, [3 4])) % C-PROF and B-PROF
    formatVersion = deblank(get_data_from_name('FORMAT_VERSION', profData1)');
    if (~strcmp(formatVersion, '3.1'))
       fprintf('ERROR: Input PROF file (%s) format version is %s while 3.1 is expected - not used\n', ...
@@ -833,20 +833,59 @@ for idProf = 1:nProf
          if ((paramInfo.paramType == 'c') || (paramInfo.paramType == 'b'))
             profParamList{end+1} = paramName;
             parameterList2{end+1} = paramName;
-            if (strcmp(paramName, 'PRES') && (a_profFileType == 4)) % B-PROF
-               wantedVars = [wantedVars ...
-                  {paramName} ...
-                  ];
+            if (strcmp(paramName, 'PRES'))
+               if (a_profFileType == 4) % B-PROF
+                  % PRES adjusted values are in core file
+                  wantedVars = [wantedVars ...
+                     {paramName} ...
+                     ];
+               elseif (a_profFileType == 2) % S-PROF
+                  % _STD and _MED are 'I' parameters (not in S-PROF)
+                  wantedVars = [wantedVars ...
+                     {paramName} ...
+                     {[paramName '_QC']} ...
+                     {[paramName '_ADJUSTED']} ...
+                     {[paramName '_ADJUSTED_QC']} ...
+                     {[paramName '_ADJUSTED_ERROR']} ...
+                     ];
+               else
+                  % PRES_STD doesn't exist
+                  wantedVars = [wantedVars ...
+                     {paramName} ...
+                     {[paramName '_QC']} ...
+                     {[paramName '_ADJUSTED']} ...
+                     {[paramName '_ADJUSTED_QC']} ...
+                     {[paramName '_ADJUSTED_ERROR']} ...
+                     {[paramName '_MED']} ...
+                     {[paramName '_MED_QC']} ...
+                     ];
+               end
             else
-               wantedVars = [wantedVars ...
-                  {paramName} ...
-                  {[paramName '_QC']} ...
-                  {[paramName '_ADJUSTED']} ...
-                  {[paramName '_ADJUSTED_QC']} ...
-                  {[paramName '_ADJUSTED_ERROR']} ...
-                  ];
+               if (a_profFileType == 2) % S-PROF
+                  % _STD and _MED are 'I' parameters (not in S-PROF)
+                  wantedVars = [wantedVars ...
+                     {paramName} ...
+                     {[paramName '_QC']} ...
+                     {[paramName '_ADJUSTED']} ...
+                     {[paramName '_ADJUSTED_QC']} ...
+                     {[paramName '_ADJUSTED_ERROR']} ...
+                     ];
+               else
+                  wantedVars = [wantedVars ...
+                     {paramName} ...
+                     {[paramName '_QC']} ...
+                     {[paramName '_ADJUSTED']} ...
+                     {[paramName '_ADJUSTED_QC']} ...
+                     {[paramName '_ADJUSTED_ERROR']} ...
+                     {[paramName '_STD']} ...
+                     {[paramName '_STD_QC']} ...
+                     {[paramName '_MED']} ...
+                     {[paramName '_MED_QC']} ...
+                     ];
+               end
             end
             if (a_profFileType == 2) % S-PROF
+               % retrieve <PARAM>_dPRES from all (but PRES) parameters of S-PROF
                if (~strcmp(paramName, 'PRES'))
                   wantedVars = [wantedVars ...
                      {[paramName '_dPRES']} ...
@@ -898,7 +937,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -965,227 +1004,234 @@ for idType = 1:2
       return
    end
 
-   % retrieve the N_LEVELS dimension value
-   [~, nbLevels] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_LEVELS'));
+   try
 
-   % retrieve the N_PROF dimension value
-   [~, nbProf] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_PROF'));
+      % retrieve the N_LEVELS dimension value
+      [~, nbLevels] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_LEVELS'));
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   % update JULD_QC
-   idForJuld = find(strcmp(a_linkStruct(idLink, 2), 'JULD_QC'));
-   if (~isempty(idForJuld))
-      % exclude bounce profiles from the update process
-      noBounceProf = [];
-      vssValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'VERTICAL_SAMPLING_SCHEME'));
-      for idProf = 1:nbProf
-         vss = strtrim(vssValue(:, idProf)');
-         if (~strncmp(vss, 'Bounce sampling:', length('Bounce sampling:')))
-            noBounceProf = [noBounceProf idProf];
-         end
-      end
-      currentValueOri = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_QC'));
-      currentValue = currentValueOri(noBounceProf);
-      newValue = currentValue;
-      for idR = idLink(idForJuld)'
-         newValue = repmat(a_linkStruct{idR, 5}, size(currentValue));
-      end
-      if (any(newValue ~= currentValue))
-         newValueOri = currentValueOri;
-         newValueOri(noBounceProf) = newValue;
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_QC'), newValueOri);
-         updatedFlag = 1;
-         updatedParamList{end+1} = 'JULD_QC';
-         updatedProfIdList = [updatedProfIdList noBounceProf];
-         if (VERBOSE_MODE)
-            fprintf('Current JULD_QC: %c\n', currentValue(1));
-            fprintf('New     JULD_QC: %c\n', newValue(1));
-         end
-         if (idType == 1) % no need to be duplicated in the CSV report
-            for idProf = noBounceProf
-               reportCsvStruct = get_csv_report_init_struct;
+      % retrieve the N_PROF dimension value
+      [~, nbProf] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_PROF'));
 
-               reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, 1)');
-               reportCsvStruct.DAC_NAME = g_cocsq_currentDacName;
-               reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(1);
-               reportCsvStruct.DIRECTION = profData.DIRECTION(1);
-               reportCsvStruct.PARAMETER = 'DAT$';
-               reportCsvStruct.START_IMMERSION = '';
-               reportCsvStruct.STOP_IMMERSION = '';
-               reportCsvStruct.OLD_QC = currentValue;
-               reportCsvStruct.NEW_QC = newValue;
-               reportCsvStruct.VERTICAL_SAMPLING_SCHEME = '';
-               reportCsvStruct.START_IMMLEVEL = '';
-               reportCsvStruct.STOP_IMMLEVEL = '';
-               reportCsvStruct.PROFILE_NUMBER = idProf;
-
-               g_cocsq_reportCsvData = [g_cocsq_reportCsvData reportCsvStruct];
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % update JULD_QC
+      idForJuld = find(strcmp(a_linkStruct(idLink, 2), 'JULD_QC'));
+      if (~isempty(idForJuld))
+         % exclude bounce profiles from the update process
+         noBounceProf = [];
+         vssValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'VERTICAL_SAMPLING_SCHEME'));
+         for idProf = 1:nbProf
+            vss = strtrim(vssValue(:, idProf)');
+            if (~strncmp(vss, 'Bounce sampling:', length('Bounce sampling:')))
+               noBounceProf = [noBounceProf idProf];
             end
          end
-      end
-   end
-
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   % update POSITION_QC
-   idForPos = find(strcmp(a_linkStruct(idLink, 2), 'POSITION_QC'));
-   if (~isempty(idForPos))
-      % exclude bounce profiles from the update process
-      noBounceProf = [];
-      vssValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'VERTICAL_SAMPLING_SCHEME'));
-      for idProf = 1:nbProf
-         vss = strtrim(vssValue(:, idProf)');
-         if (~strncmp(vss, 'Bounce sampling:', length('Bounce sampling:')))
-            noBounceProf = [noBounceProf idProf];
+         currentValueOri = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_QC'));
+         currentValue = currentValueOri(noBounceProf);
+         newValue = currentValue;
+         for idR = idLink(idForJuld)'
+            newValue = repmat(a_linkStruct{idR, 5}, size(currentValue));
          end
-      end
-      currentValueOri = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'POSITION_QC'));
-      currentValue = currentValueOri(noBounceProf);
-      newValue = currentValue;
-      for idR = idLink(idForPos)'
-         newValue = repmat(a_linkStruct{idR, 5}, size(currentValue));
-      end
-      if (any(newValue ~= currentValue))
-         newValueOri = currentValueOri;
-         newValueOri(noBounceProf) = newValue;
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'POSITION_QC'), newValueOri);
-         updatedFlag = 1;
-         updatedParamList{end+1} = 'POSITION_QC';
-         updatedProfIdList = [updatedProfIdList noBounceProf];
-         if (VERBOSE_MODE)
-            fprintf('Current POSITION_QC: %c\n', currentValue(1));
-            fprintf('New     POSITION_QC: %c\n', newValue(1));
-         end
-         if (idType == 1) % no need to be duplicated in the CSV report
-            for idProf = noBounceProf
-               reportCsvStruct = get_csv_report_init_struct;
-
-               reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, 1)');
-               reportCsvStruct.DAC_NAME = g_cocsq_currentDacName;
-               reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(1);
-               reportCsvStruct.DIRECTION = profData.DIRECTION(1);
-               reportCsvStruct.PARAMETER = 'POS$';
-               reportCsvStruct.START_IMMERSION = '';
-               reportCsvStruct.STOP_IMMERSION = '';
-               reportCsvStruct.OLD_QC = currentValue;
-               reportCsvStruct.NEW_QC = newValue;
-               reportCsvStruct.VERTICAL_SAMPLING_SCHEME = '';
-               reportCsvStruct.START_IMMLEVEL = '';
-               reportCsvStruct.STOP_IMMLEVEL = '';
-               reportCsvStruct.PROFILE_NUMBER = idProf;
-
-               g_cocsq_reportCsvData = [g_cocsq_reportCsvData reportCsvStruct];
+         if (any(newValue ~= currentValue))
+            newValueOri = currentValueOri;
+            newValueOri(noBounceProf) = newValue;
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_QC'), newValueOri);
+            updatedFlag = 1;
+            updatedParamList{end+1} = 'JULD_QC';
+            updatedProfIdList = [updatedProfIdList noBounceProf];
+            if (VERBOSE_MODE)
+               fprintf('Current JULD_QC: %c\n', currentValue(1));
+               fprintf('New     JULD_QC: %c\n', newValue(1));
             end
-         end
-      end
-   end
-
-   % list of parameters with SCOOP QC
-   paramListToReport = unique([a_linkStruct(idLink, 2)], 'stable');
-   paramListToReport = setdiff(paramListToReport, [{'JULD_QC'} {'POSITION_QC'}]);
-
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   % update <PARAM>_QC
-   for idParamToReport = 1:length(paramListToReport)
-      paramNameQc = paramListToReport{idParamToReport};
-      paramName = paramNameQc(1:end-3);
-      paramNamePrefix = paramName;
-      if ((length(paramName) > 8) && strcmp(paramName(end-8:end), '_ADJUSTED'))
-         paramNamePrefix = paramName(1:end-9);
-      end
-
-      if (var_is_present(fCdf, paramNameQc))
-         idForParam = find(strcmp(a_linkStruct(idLink, 2), paramNameQc));
-
-         profIdList = unique([a_linkStruct{idLink(idForParam)', 3}], 'stable');
-         for profId = profIdList
-            idForProf = find(strcmp(a_linkStruct(idLink, 2), paramNameQc) & ...
-               ([a_linkStruct{idLink, 3}] == profId)');
-            currentValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, paramNameQc), fliplr([profId-1 0]), fliplr([1 nbLevels]));
-            newValue = currentValue;
-            for idR = idLink(idForProf)'
-               newValue(a_linkStruct{idR, 4}) = a_linkStruct{idR, 5};
-            end
-            if (any(newValue ~= currentValue))
-               netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, paramNameQc), fliplr([profId-1 0]), fliplr([1 nbLevels]), newValue);
-               updatedFlag = 1;
-               updatedParamList{end+1} = paramNameQc;
-               updatedProfIdList = [updatedProfIdList profId];
-               idDiff = find(newValue ~= currentValue);
-               for id = 1:length(idDiff)
+            if (idType == 1) % no need to be duplicated in the CSV report
+               for idProf = noBounceProf
                   reportCsvStruct = get_csv_report_init_struct;
 
-                  reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, profId)');
+                  reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, 1)');
                   reportCsvStruct.DAC_NAME = g_cocsq_currentDacName;
-                  reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(profId);
-                  reportCsvStruct.DIRECTION = profData.DIRECTION(profId);
-                  reportCsvStruct.PARAMETER = paramName;
-                  reportCsvStruct.START_IMMERSION = profData.PRES(idDiff(id), profId);
-                  reportCsvStruct.STOP_IMMERSION = profData.PRES(idDiff(id), profId);
-                  reportCsvStruct.OLD_QC = currentValue(idDiff(id));
-                  reportCsvStruct.NEW_QC = newValue(idDiff(id));
-                  vss = strtrim(profData.VERTICAL_SAMPLING_SCHEME(:, profId)');
-                  idF = strfind(vss, ':');
-                  reportCsvStruct.VERTICAL_SAMPLING_SCHEME = vss(1:idF(1)-1);
-                  reportCsvStruct.START_IMMLEVEL = idDiff(id);
-                  reportCsvStruct.STOP_IMMLEVEL = idDiff(id);
-                  reportCsvStruct.PROFILE_NUMBER = profId;
+                  reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(1);
+                  reportCsvStruct.DIRECTION = profData.DIRECTION(1);
+                  reportCsvStruct.PARAMETER = 'DAT$';
+                  reportCsvStruct.START_IMMERSION = '';
+                  reportCsvStruct.STOP_IMMERSION = '';
+                  reportCsvStruct.OLD_QC = currentValue;
+                  reportCsvStruct.NEW_QC = newValue;
+                  reportCsvStruct.VERTICAL_SAMPLING_SCHEME = '';
+                  reportCsvStruct.START_IMMLEVEL = '';
+                  reportCsvStruct.STOP_IMMLEVEL = '';
+                  reportCsvStruct.PROFILE_NUMBER = idProf;
 
                   g_cocsq_reportCsvData = [g_cocsq_reportCsvData reportCsvStruct];
                end
-               if (VERBOSE_MODE)
+            end
+         end
+      end
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % update POSITION_QC
+      idForPos = find(strcmp(a_linkStruct(idLink, 2), 'POSITION_QC'));
+      if (~isempty(idForPos))
+         % exclude bounce profiles from the update process
+         noBounceProf = [];
+         vssValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'VERTICAL_SAMPLING_SCHEME'));
+         for idProf = 1:nbProf
+            vss = strtrim(vssValue(:, idProf)');
+            if (~strncmp(vss, 'Bounce sampling:', length('Bounce sampling:')))
+               noBounceProf = [noBounceProf idProf];
+            end
+         end
+         currentValueOri = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'POSITION_QC'));
+         currentValue = currentValueOri(noBounceProf);
+         newValue = currentValue;
+         for idR = idLink(idForPos)'
+            newValue = repmat(a_linkStruct{idR, 5}, size(currentValue));
+         end
+         if (any(newValue ~= currentValue))
+            newValueOri = currentValueOri;
+            newValueOri(noBounceProf) = newValue;
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'POSITION_QC'), newValueOri);
+            updatedFlag = 1;
+            updatedParamList{end+1} = 'POSITION_QC';
+            updatedProfIdList = [updatedProfIdList noBounceProf];
+            if (VERBOSE_MODE)
+               fprintf('Current POSITION_QC: %c\n', currentValue(1));
+               fprintf('New     POSITION_QC: %c\n', newValue(1));
+            end
+            if (idType == 1) % no need to be duplicated in the CSV report
+               for idProf = noBounceProf
+                  reportCsvStruct = get_csv_report_init_struct;
+
+                  reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, 1)');
+                  reportCsvStruct.DAC_NAME = g_cocsq_currentDacName;
+                  reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(1);
+                  reportCsvStruct.DIRECTION = profData.DIRECTION(1);
+                  reportCsvStruct.PARAMETER = 'POS$';
+                  reportCsvStruct.START_IMMERSION = '';
+                  reportCsvStruct.STOP_IMMERSION = '';
+                  reportCsvStruct.OLD_QC = currentValue;
+                  reportCsvStruct.NEW_QC = newValue;
+                  reportCsvStruct.VERTICAL_SAMPLING_SCHEME = '';
+                  reportCsvStruct.START_IMMLEVEL = '';
+                  reportCsvStruct.STOP_IMMLEVEL = '';
+                  reportCsvStruct.PROFILE_NUMBER = idProf;
+
+                  g_cocsq_reportCsvData = [g_cocsq_reportCsvData reportCsvStruct];
+               end
+            end
+         end
+      end
+
+      % list of parameters with SCOOP QC
+      paramListToReport = unique([a_linkStruct(idLink, 2)], 'stable');
+      paramListToReport = setdiff(paramListToReport, [{'JULD_QC'} {'POSITION_QC'}]);
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % update <PARAM>_QC
+      for idParamToReport = 1:length(paramListToReport)
+         paramNameQc = paramListToReport{idParamToReport};
+         paramName = paramNameQc(1:end-3);
+         paramNamePrefix = paramName;
+         if ((length(paramName) > 8) && strcmp(paramName(end-8:end), '_ADJUSTED'))
+            paramNamePrefix = paramName(1:end-9);
+         end
+
+         if (var_is_present(fCdf, paramNameQc))
+            idForParam = find(strcmp(a_linkStruct(idLink, 2), paramNameQc));
+
+            profIdList = unique([a_linkStruct{idLink(idForParam)', 3}], 'stable');
+            for profId = profIdList
+               idForProf = find(strcmp(a_linkStruct(idLink, 2), paramNameQc) & ...
+                  ([a_linkStruct{idLink, 3}] == profId)');
+               currentValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, paramNameQc), fliplr([profId-1 0]), fliplr([1 nbLevels]));
+               newValue = currentValue;
+               for idR = idLink(idForProf)'
+                  newValue(a_linkStruct{idR, 4}) = a_linkStruct{idR, 5};
+               end
+               if (any(newValue ~= currentValue))
+                  netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, paramNameQc), fliplr([profId-1 0]), fliplr([1 nbLevels]), newValue);
+                  updatedFlag = 1;
+                  updatedParamList{end+1} = paramNameQc;
+                  updatedProfIdList = [updatedProfIdList profId];
+                  idDiff = find(newValue ~= currentValue);
                   for id = 1:length(idDiff)
-                     fprintf('Current %s(%d,%d): %c\n', ...
-                        paramNameQc, profId, idDiff(id), currentValue(idDiff(id)));
-                     fprintf('New     %s(%d,%d): %c\n', ...
-                        paramNameQc, profId, idDiff(id), newValue(idDiff(id)));
-                  end
-               end
+                     reportCsvStruct = get_csv_report_init_struct;
 
-               % check if PROFILE_<PARAM>_QC should be updated
-               updateProfQcFlag = 1;
-               if (idType == 1)
-                  dataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE'));
-                  if ((dataMode(profId) ~= 'R') && strcmp(paramNamePrefix, paramName))
-                     updateProfQcFlag = 0; % <PARAM>_QC reported while <PARAM> is in 'A' or 'D' data mode (the PROFILE_<PARAM>_QC should be updated with <PARAM>_ADJUSTED_QC if modified)
-                  end
-               else
-                  parameterDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PARAMETER_DATA_MODE'))';
-                  stationParameters = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'STATION_PARAMETERS'));
-
-                  % create the list of adjusted parameters for this profile
-                  adjustedParam = [];
-                  for idParam = 1:size(stationParameters, 2)
-                     paramName = strtrim(stationParameters(:, idParam, profId)');
-                     if (~isempty(paramName))
-                        if (ismember(parameterDataMode(profId, idParam), 'AD'))
-                           adjustedParam = [adjustedParam {paramName}];
-                        end
-                     end
-                  end
-                  if (strcmp(paramNamePrefix, paramName) && any(strcmp([paramNamePrefix '_ADJUSTED' ], adjustedParam)))
-                     updateProfQcFlag = 0; % <PARAM>_QC reported while <PARAM> is in 'A' or 'D' data mode (the PROFILE_<PARAM>_QC should be updated with <PARAM>_ADJUSTED_QC if modified)
-                  end
-               end
-
-               %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-               % update of PROFILE_<PARAM>_QC
-               if (updateProfQcFlag)
-                  profParamQcName = ['PROFILE_' paramNamePrefix '_QC'];
-                  if (var_is_present_dec_argo(fCdf, profParamQcName))
-                     currentProfParamQc = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, profParamQcName), profId-1, 1);
-                     if ~((length(unique(newValue)) == 1) && (unique(newValue) == g_decArgo_qcStrDef))
-                        newProfParamQc = compute_profile_quality_flag(newValue);
+                     reportCsvStruct.DAC_CODE = strtrim(profData.DATA_CENTRE(:, profId)');
+                     reportCsvStruct.DAC_NAME = g_cocsq_currentDacName;
+                     reportCsvStruct.CV_NUMBER = profData.CYCLE_NUMBER(profId);
+                     reportCsvStruct.DIRECTION = profData.DIRECTION(profId);
+                     reportCsvStruct.PARAMETER = paramName;
+                     reportCsvStruct.START_IMMERSION = profData.PRES(idDiff(id), profId);
+                     reportCsvStruct.STOP_IMMERSION = profData.PRES(idDiff(id), profId);
+                     reportCsvStruct.OLD_QC = currentValue(idDiff(id));
+                     reportCsvStruct.NEW_QC = newValue(idDiff(id));
+                     vss = strtrim(profData.VERTICAL_SAMPLING_SCHEME(:, profId)');
+                     idF = strfind(vss, ':');
+                     if (~isempty(idF))
+                        reportCsvStruct.VERTICAL_SAMPLING_SCHEME = vss(1:idF(1)-1);
                      else
-                        newProfParamQc = g_decArgo_qcStrDef;
+                        reportCsvStruct.VERTICAL_SAMPLING_SCHEME = strtrim(vss);
                      end
-                     if (newProfParamQc ~= currentProfParamQc)
-                        netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, profParamQcName), profId-1, 1, newProfParamQc);
-                        updatedFlag = 1;
-                        updatedParamList{end+1} = profParamQcName;
-                        updatedProfIdList = [updatedProfIdList profId];
-                        if (VERBOSE_MODE)
-                           fprintf('Current %s: %c\n', profParamQcName, currentProfParamQc);
-                           fprintf('New     %s: %c\n', profParamQcName, newProfParamQc);
+                     reportCsvStruct.START_IMMLEVEL = idDiff(id);
+                     reportCsvStruct.STOP_IMMLEVEL = idDiff(id);
+                     reportCsvStruct.PROFILE_NUMBER = profId;
+
+                     g_cocsq_reportCsvData = [g_cocsq_reportCsvData reportCsvStruct];
+                  end
+                  if (VERBOSE_MODE)
+                     for id = 1:length(idDiff)
+                        fprintf('Current %s(%d,%d): %c\n', ...
+                           paramNameQc, profId, idDiff(id), currentValue(idDiff(id)));
+                        fprintf('New     %s(%d,%d): %c\n', ...
+                           paramNameQc, profId, idDiff(id), newValue(idDiff(id)));
+                     end
+                  end
+
+                  % check if PROFILE_<PARAM>_QC should be updated
+                  updateProfQcFlag = 1;
+                  if (idType == 1)
+                     dataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE'));
+                     if ((dataMode(profId) ~= 'R') && strcmp(paramNamePrefix, paramName))
+                        updateProfQcFlag = 0; % <PARAM>_QC reported while <PARAM> is in 'A' or 'D' data mode (the PROFILE_<PARAM>_QC should be updated with <PARAM>_ADJUSTED_QC if modified)
+                     end
+                  else
+                     parameterDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PARAMETER_DATA_MODE'))';
+                     stationParameters = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'STATION_PARAMETERS'));
+
+                     % create the list of adjusted parameters for this profile
+                     adjustedParam = [];
+                     for idParam = 1:size(stationParameters, 2)
+                        paramNameTmp = strtrim(stationParameters(:, idParam, profId)');
+                        if (~isempty(paramNameTmp))
+                           if (ismember(parameterDataMode(profId, idParam), 'AD'))
+                              adjustedParam = [adjustedParam {paramNameTmp}];
+                           end
+                        end
+                     end
+                     if (strcmp(paramNamePrefix, paramName) && any(strcmp(paramNamePrefix, adjustedParam)))
+                        updateProfQcFlag = 0; % <PARAM>_QC reported while <PARAM> is in 'A' or 'D' data mode (the PROFILE_<PARAM>_QC should be updated with <PARAM>_ADJUSTED_QC if modified)
+                     end
+                  end
+
+                  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                  % update of PROFILE_<PARAM>_QC
+                  if (updateProfQcFlag)
+                     profParamQcName = ['PROFILE_' paramNamePrefix '_QC'];
+                     if (var_is_present_dec_argo(fCdf, profParamQcName))
+                        currentProfParamQc = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, profParamQcName), profId-1, 1);
+                        if ~((length(unique(newValue)) == 1) && (unique(newValue) == g_decArgo_qcStrDef))
+                           newProfParamQc = compute_profile_quality_flag(newValue);
+                        else
+                           newProfParamQc = g_decArgo_qcStrDef;
+                        end
+                        if (newProfParamQc ~= currentProfParamQc)
+                           netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, profParamQcName), profId-1, 1, newProfParamQc);
+                           updatedFlag = 1;
+                           updatedParamList{end+1} = profParamQcName;
+                           updatedProfIdList = [updatedProfIdList profId];
+                           if (VERBOSE_MODE)
+                              fprintf('Current %s: %c\n', profParamQcName, currentProfParamQc);
+                              fprintf('New     %s: %c\n', profParamQcName, newProfParamQc);
+                           end
                         end
                      end
                   end
@@ -1193,141 +1239,145 @@ for idType = 1:2
             end
          end
       end
-   end
 
-   if (updatedFlag)
+      if (updatedFlag)
 
-      % retrieve the current HISTORY Id of the output file
-      currentHistoId = 0;
-      outputHistoryInstitution = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'));
-      if (~isempty(outputHistoryInstitution))
-         currentHistoId = size(outputHistoryInstitution, 3);
-      end
+         % retrieve the current HISTORY Id of the output file
+         currentHistoId = 0;
+         outputHistoryInstitution = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'));
+         if (~isempty(outputHistoryInstitution))
+            currentHistoId = size(outputHistoryInstitution, 3);
+         end
 
-      % copy SCOOP HISTORY information from QC file to c or b output file
-      historySoftware = a_qcProfData.HISTORY_SOFTWARE;
-      historyAction = a_qcProfData.HISTORY_ACTION;
-      historyParameter = a_qcProfData.HISTORY_PARAMETER;
+         % copy SCOOP HISTORY information from QC file to c or b output file
+         historySoftware = a_qcProfData.HISTORY_SOFTWARE;
+         historyAction = a_qcProfData.HISTORY_ACTION;
+         historyParameter = a_qcProfData.HISTORY_PARAMETER;
 
-      [~, nProf, nHistory] = size(historySoftware); % nProf = in QC file
-      for idH = 1:nHistory
-         for idP = 1:nProf
-            software = strtrim(historySoftware(:, idP, idH)');
-            action = strtrim(historyAction(:, idP, idH)');
-            if (strcmp(software, 'SCOO') && strcmp(action, 'CF'))
+         [~, nProf, nHistory] = size(historySoftware); % nProf = in QC file
+         for idH = 1:nHistory
+            for idP = 1:nProf
+               software = strtrim(historySoftware(:, idP, idH)');
+               action = strtrim(historyAction(:, idP, idH)');
+               if (strcmp(software, 'SCOO') && strcmp(action, 'CF'))
 
-               parameter = strtrim(historyParameter(:, 1, idH)');
+                  parameter = strtrim(historyParameter(:, 1, idH)');
 
-               copyFlag = 0;
-               if (strcmp(parameter, 'DAT$') || strcmp(parameter, 'POS$'))
-                  copyFlag = 1;
-               else
-                  parameter = regexprep(parameter, '_ADJUSTED', '');
-                  paramInfo = get_netcdf_param_attributes(parameter);
-                  if ((((paramInfo.paramType == 'c') || (paramInfo.paramType == 'j')) && (idType == 1)) || ...
-                        (((paramInfo.paramType ~= 'c') && (paramInfo.paramType ~= 'j')) && (idType == 2)))
+                  copyFlag = 0;
+                  if (strcmp(parameter, 'DAT$') || strcmp(parameter, 'POS$'))
                      copyFlag = 1;
+                  else
+                     parameter = regexprep(parameter, '_ADJUSTED', '');
+                     paramInfo = get_netcdf_param_attributes(parameter);
+                     if ((((paramInfo.paramType == 'c') || (paramInfo.paramType == 'j')) && (idType == 1)) || ...
+                           (((paramInfo.paramType ~= 'c') && (paramInfo.paramType ~= 'j')) && (idType == 2)))
+                        copyFlag = 1;
+                     end
                   end
-               end
 
-               if (copyFlag)
+                  if (copyFlag)
 
-                  histoItemList = [ ...
-                     {'HISTORY_INSTITUTION'} ...
-                     {'HISTORY_STEP'} ...
-                     {'HISTORY_SOFTWARE'} ...
-                     {'HISTORY_SOFTWARE_RELEASE'} ...
-                     {'HISTORY_REFERENCE'} ...
-                     {'HISTORY_DATE'} ...
-                     {'HISTORY_ACTION'} ...
-                     {'HISTORY_PARAMETER'} ...
-                     {'HISTORY_QCTEST'} ...
-                     ];
-                  for idHI = 1:length(histoItemList)
-                     histoItemParamName = histoItemList{idHI};
+                     histoItemList = [ ...
+                        {'HISTORY_INSTITUTION'} ...
+                        {'HISTORY_STEP'} ...
+                        {'HISTORY_SOFTWARE'} ...
+                        {'HISTORY_SOFTWARE_RELEASE'} ...
+                        {'HISTORY_REFERENCE'} ...
+                        {'HISTORY_DATE'} ...
+                        {'HISTORY_ACTION'} ...
+                        {'HISTORY_PARAMETER'} ...
+                        {'HISTORY_QCTEST'} ...
+                        ];
+                     for idHI = 1:length(histoItemList)
+                        histoItemParamName = histoItemList{idHI};
 
-                     inputValue = a_qcProfData.(histoItemParamName);
-                     if (~isempty(inputValue)) % if N_HISTORY = 0 (should not happen but has
-                        % been seen for unknown reason) the variables are not present in the
-                        % input Qc file
-                        data = strtrim(inputValue(:, idP, idH)');
-                        if (~isempty(data))
-                           netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, histoItemParamName), ...
-                              fliplr([currentHistoId idP-1 0]), ...
-                              fliplr([1 1 length(data)]), data');
+                        inputValue = a_qcProfData.(histoItemParamName);
+                        if (~isempty(inputValue)) % if N_HISTORY = 0 (should not happen but has
+                           % been seen for unknown reason) the variables are not present in the
+                           % input Qc file
+                           data = strtrim(inputValue(:, idP, idH)');
+                           if (~isempty(data))
+                              netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, histoItemParamName), ...
+                                 fliplr([currentHistoId idP-1 0]), ...
+                                 fliplr([1 1 length(data)]), data');
+                           end
                         end
                      end
-                  end
 
-                  histoItemList = [ ...
-                     {'HISTORY_START_PRES'} ...
-                     {'HISTORY_STOP_PRES'} ...
-                     {'HISTORY_PREVIOUS_VALUE'} ...
-                     ];
-                  for idHI = 1:length(histoItemList)
-                     histoItemParamName = histoItemList{idHI};
+                     histoItemList = [ ...
+                        {'HISTORY_START_PRES'} ...
+                        {'HISTORY_STOP_PRES'} ...
+                        {'HISTORY_PREVIOUS_VALUE'} ...
+                        ];
+                     for idHI = 1:length(histoItemList)
+                        histoItemParamName = histoItemList{idHI};
 
-                     inputValue = a_qcProfData.(histoItemParamName);
-                     if (~isempty(inputValue)) % if N_HISTORY = 0 (should not happen but has
-                        % been seen for unknown reason) the variables are not present in the
-                        % input Qc file
-                        data = inputValue(idP, idH);
-                        netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, histoItemParamName), ...
-                           fliplr([currentHistoId idP-1]), ...
-                           fliplr([1 1]), data);
+                        inputValue = a_qcProfData.(histoItemParamName);
+                        if (~isempty(inputValue)) % if N_HISTORY = 0 (should not happen but has
+                           % been seen for unknown reason) the variables are not present in the
+                           % input Qc file
+                           data = inputValue(idP, idH);
+                           netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, histoItemParamName), ...
+                              fliplr([currentHistoId idP-1]), ...
+                              fliplr([1 1]), data);
+                        end
                      end
+                     currentHistoId = currentHistoId + 1;
                   end
-                  currentHistoId = currentHistoId + 1;
                end
             end
          end
+
+         % add history information that concerns the current program
+         dateUpdate = datestr(g_cocsq_nowUtc, 'yyyymmddHHMMSS');
+         updatedProfIdList = unique(updatedProfIdList);
+         for idProf = updatedProfIdList
+            value = 'IF';
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
+               fliplr([currentHistoId idProf-1 0]), ...
+               fliplr([1 1 length(value)]), value');
+            value = 'COCQ';
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
+               fliplr([currentHistoId idProf-1 0]), ...
+               fliplr([1 1 length(value)]), value');
+            value = g_cocsq_ncCopySyntheticProfileQcVersion;
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
+               fliplr([currentHistoId idProf-1 0]), ...
+               fliplr([1 1 length(value)]), value');
+            value = dateUpdate;
+            netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
+               fliplr([currentHistoId idProf-1 0]), ...
+               fliplr([1 1 length(value)]), value');
+         end
+
+         % update the update date of the Output file
+         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), dateUpdate);
+
+         % update the 'history' global attribute of the Output file
+         creationDate = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_CREATION'));
+         globalHistoryText = [ ...
+            datestr(datenum(creationDate', 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; ' ...
+            datestr(datenum(dateUpdate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COCQ (V' num2str(g_cocsq_ncCopySyntheticProfileQcVersion) ') tool)'];
+         netcdf.reDef(fCdf);
+         netcdf.putAtt(fCdf, netcdf.getConstant('NC_GLOBAL'), 'history', globalHistoryText);
+         netcdf.endDef(fCdf);
+
+         % set output parameters
+         if (idType == 1)
+            o_updatedCFileParamList = updatedParamList;
+            o_updatedCFileProfList = updatedProfIdList;
+         else
+            o_updatedBFileParamList = updatedParamList;
+            o_updatedBFileProfList = updatedProfIdList;
+         end
       end
 
-      % add history information that concerns the current program
-      dateUpdate = datestr(g_cocsq_nowUtc, 'yyyymmddHHMMSS');
-      updatedProfIdList = unique(updatedProfIdList);
-      for idProf = updatedProfIdList
-         value = 'IF';
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
-            fliplr([currentHistoId idProf-1 0]), ...
-            fliplr([1 1 length(value)]), value');
-         value = 'COCQ';
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
-            fliplr([currentHistoId idProf-1 0]), ...
-            fliplr([1 1 length(value)]), value');
-         value = g_cocsq_ncCopySyntheticProfileQcVersion;
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
-            fliplr([currentHistoId idProf-1 0]), ...
-            fliplr([1 1 length(value)]), value');
-         value = dateUpdate;
-         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
-            fliplr([currentHistoId idProf-1 0]), ...
-            fliplr([1 1 length(value)]), value');
-      end
+      netcdf.close(fCdf);
 
-      % update the update date of the Output file
-      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), dateUpdate);
-
-      % update the 'history' global attribute of the Output file
-      creationDate = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_CREATION'));
-      globalHistoryText = [ ...
-         datestr(datenum(creationDate', 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; ' ...
-         datestr(datenum(dateUpdate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COCQ (V' num2str(g_cocsq_ncCopySyntheticProfileQcVersion) ') tool)'];
-      netcdf.reDef(fCdf);
-      netcdf.putAtt(fCdf, netcdf.getConstant('NC_GLOBAL'), 'history', globalHistoryText);
-      netcdf.endDef(fCdf);
-
-      % set output parameters
-      if (idType == 1)
-         o_updatedCFileParamList = updatedParamList;
-         o_updatedCFileProfList = updatedProfIdList;
-      else
-         o_updatedBFileParamList = updatedParamList;
-         o_updatedBFileProfList = updatedProfIdList;
-      end
+   catch MException
+      netcdf.close(fCdf);
+      rethrow(MException)
    end
-
-   netcdf.close(fCdf);
 end
 
 o_ok = 1;
@@ -1351,7 +1401,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1500,7 +1550,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1532,7 +1582,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1580,7 +1630,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1781,7 +1831,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1839,7 +1889,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1876,7 +1926,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -1896,22 +1946,76 @@ if (exist(a_ncPathFileName, 'file') == 2)
       return
    end
 
-   % retrieve variables from NetCDF file
-   for idVar = 1:length(a_wantedVars)
-      varName = a_wantedVars{idVar};
+   try
 
-      if (var_is_present(fCdf, varName))
-         varValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, varName));
-         o_ncData = [o_ncData {varName} {varValue}];
-      else
-         fprintf('WARNING: Variable %s not present in file : %s\n', ...
-            varName, a_ncPathFileName);
-         o_ncData = [o_ncData {varName} {' '}];
+      % retrieve the list of variables that are present in the file
+      varFlagList = vars_are_present_dec_argo(fCdf, a_wantedVars);
+
+      % retrieve variables from NetCDF file
+      for idVar = 1:length(a_wantedVars)
+         varName = a_wantedVars{idVar};
+
+         if (varFlagList(idVar) == 1)
+            varValue = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, varName));
+            o_ncData = [o_ncData {varName} {varValue}];
+         else
+            if ~(((length(varName) > 3) && strcmp(varName(end-3:end), '_MED')) || ...
+                  ((length(varName) > 6) && strcmp(varName(end-6:end), '_MED_QC')) || ...
+                  ((length(varName) > 3) && strcmp(varName(end-3:end), '_STD')) || ...
+                  ((length(varName) > 6) && strcmp(varName(end-6:end), '_STD_QC')))
+               fprintf('WARNING: Variable %s not present in file : %s\n', ...
+                  varName, a_ncPathFileName);
+            end
+            o_ncData = [o_ncData {varName} {' '}];
+         end
+
       end
 
-   end
+      netcdf.close(fCdf);
 
-   netcdf.close(fCdf);
+   catch MException
+      netcdf.close(fCdf);
+      rethrow(MException)
+   end
+end
+
+return
+
+% ------------------------------------------------------------------------------
+% Check if a given list of variables are present in a NetCDF file.
+%
+% SYNTAX :
+%  [o_varFlagList] = vars_are_present_dec_argo(a_ncId, a_varNameList)
+%
+% INPUT PARAMETERS :
+%   a_ncId        : NetCDF file Id
+%   a_varNameList : list of variable names
+%
+% OUTPUT PARAMETERS :
+%   o_varFlagList : 1 if the variable is present (0 otherwise)
+%
+% EXAMPLES :
+%
+% SEE ALSO :
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
+% ------------------------------------------------------------------------------
+% RELEASES :
+%   10/06/2025 - RNU - creation
+% ------------------------------------------------------------------------------
+function [o_varFlagList] = vars_are_present_dec_argo(a_ncId, a_varNameList)
+
+o_varFlagList = ones(size(a_varNameList));
+
+[~, nbVars, ~, ~] = netcdf.inq(a_ncId);
+
+valList = cell(nbVars, 1);
+for idVar = 0:nbVars-1
+   [valList{idVar+1}, ~, ~, ~] = netcdf.inqVar(a_ncId, idVar);
+end
+
+notPresentList = setdiff(a_varNameList, valList);
+for idVar = 1:length(notPresentList)
+   o_varFlagList(strcmp(notPresentList{idVar}, a_varNameList)) = 0;
 end
 
 return
@@ -1932,7 +2036,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation

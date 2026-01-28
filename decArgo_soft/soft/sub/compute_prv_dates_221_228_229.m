@@ -2,18 +2,17 @@
 % Compute the main dates of this PROVOR float cycle.
 %
 % SYNTAX :
-%  o_cycleTimeData = ...
+%  [o_cycleTimeData] = ...
 %    compute_prv_dates_221_228_229(a_tabTech1, a_tabTech2, a_deepCycle, ...
-%    a_iceDelayedCycleFlag, a_refDay, a_cycleNum, a_decoderId)
+%    a_iceAscentAbortedFlag, a_refDay, a_cycleNum, a_decoderId, a_ascProfPres)
 %
 % INPUT PARAMETERS :
-%   a_tabTech1            : decoded data of technical msg #1
-%   a_tabTech2            : decoded data of technical msg #2
-%   a_deepCycle           : deep cycle flag
-%   a_iceDelayedCycleFlag : Ice delayed cycle flag
-%   a_refDay              : reference day
-%   a_cycleNum            : cycle number
-%   a_decoderId           : float decoder Id
+%   a_tabTech1             : decoded data of technical msg #1
+%   a_tabTech2             : decoded data of technical msg #2
+%   a_deepCycle            : deep cycle flag
+%   a_iceAscentAbortedFlag : Ice aborted cycle flag (RT detemination)
+%   a_refDay               : reference day
+%   a_cycleNum             : cycle number
 %
 % OUTPUT PARAMETERS :
 %   o_cycleTimeData : cycle timings structure
@@ -21,14 +20,14 @@
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   12/06/2019 - RNU - creation
 % ------------------------------------------------------------------------------
-function o_cycleTimeData = ...
+function [o_cycleTimeData] = ...
    compute_prv_dates_221_228_229(a_tabTech1, a_tabTech2, a_deepCycle, ...
-   a_iceDelayedCycleFlag, a_refDay, a_cycleNum, a_decoderId)
+   a_iceAscentAbortedFlag, a_refDay, a_cycleNum)
 
 % output parameters initialization
 o_cycleTimeData = get_prv_ir_float_time_init_struct(a_cycleNum);
@@ -65,14 +64,10 @@ secondGroundingDate = [];
 secondGroundingPres = [];
 firstEmergencyAscentDate = [];
 firstEmergencyAscentPres = [];
-iceDetected = -1;
 
 if (isempty(a_tabTech1) && isempty(a_tabTech2))
    return
 end
-
-% ice detection determination
-iceDetected = compute_ascent_aborted_flag(a_tabTech1, a_tabTech2, a_decoderId);
 
 % technical message #1
 idF1 = find(a_tabTech1(:, 1) == 0);
@@ -295,7 +290,7 @@ o_cycleTimeData.secondGroundingDate = secondGroundingDate;
 o_cycleTimeData.secondGroundingPres = secondGroundingPres;
 o_cycleTimeData.firstEmergencyAscentDate = firstEmergencyAscentDate;
 o_cycleTimeData.firstEmergencyAscentPres = firstEmergencyAscentPres;
-o_cycleTimeData.iceDetected = iceDetected;
+o_cycleTimeData.iceAscentAbortedFlag = a_iceAscentAbortedFlag;
 
 print = 0;
 if (print == 1)

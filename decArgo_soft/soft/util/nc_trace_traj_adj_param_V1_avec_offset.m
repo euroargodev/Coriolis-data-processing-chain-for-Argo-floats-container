@@ -12,7 +12,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/06/2024 - RNU - creation
@@ -152,7 +152,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/06/2024 - RNU - creation
@@ -237,8 +237,8 @@ if (a_idFloat ~= g_NTTP_ID_FLOAT)
 
    fprintf('Float #%d: loading data\n', floatNum);
 
-   paramPres = get_netcdf_param_attributes_3_1('PRES');
-   paramStruct = get_netcdf_param_attributes_3_1(g_NTTP_PARAM_NAME);
+   paramPres = get_netcdf_param_attributes('PRES');
+   paramStruct = get_netcdf_param_attributes(g_NTTP_PARAM_NAME);
    g_NTTP_UNITS_PARAM = paramStruct.units;
    g_NTTP_PRES_FILL_VAL = paramPres.fillValue;
    g_NTTP_PARAM_FILL_VAL = paramStruct.fillValue;
@@ -674,7 +674,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/06/2024 - RNU - creation
@@ -741,7 +741,7 @@ for idParam = 1:length(g_NTTP_PARAM_LIST)
       ];
 end
 
-ncTrajData = get_data_from_nc_file2(trajFilePathName, wantedVars);
+ncTrajData = get_data_from_nc_file(trajFilePathName, wantedVars);
 
 formatVersion = strtrim(get_data_from_name('FORMAT_VERSION', ncTrajData)');
 if (~strcmp(formatVersion, '3.2'))
@@ -827,7 +827,7 @@ end
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/06/2024 - RNU - creation
@@ -889,7 +889,7 @@ else
             {[paramName '_ADJUSTED']} {[paramName '_ADJUSTED_QC']} {[paramName '_ADJUSTED_ERROR']} ...
             ];
       end
-      ncData = get_data_from_nc_file2(floatFilePathName, wantedVars);
+      ncData = get_data_from_nc_file(floatFilePathName, wantedVars);
 
       formatVersion = strtrim(get_data_from_name('FORMAT_VERSION', ncData)');
       % check the file format version
@@ -1138,7 +1138,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/06/2024 - RNU - creation
@@ -1289,7 +1289,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   08/03/2014 - RNU - creation
@@ -1396,39 +1396,6 @@ elseif (strcmp(a_eventData.Key, 'h'))
    fprintf('Plot all profile measurements: %d\n', g_NTTP_ALL_PROF_MEAS);
    fprintf('Plot RT profile measurements: %d\n', g_NTTP_RT_PROF_MEAS);
    fprintf('Plot error on adjusted measurements: %d\n', g_NTTP_PLOT_ERR);
-end
-
-return
-
-% ------------------------------------------------------------------------------
-% Get data from name in a {name}/{data} list.
-%
-% SYNTAX :
-%  [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-%
-% INPUT PARAMETERS :
-%   a_dataName : name of the data to retrieve
-%   a_dataList : {name}/{data} list
-%
-% OUTPUT PARAMETERS :
-%   o_dataValues : concerned data
-%
-% EXAMPLES :
-%
-% SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
-% ------------------------------------------------------------------------------
-% RELEASES :
-%   01/21/2015 - RNU - creation
-% ------------------------------------------------------------------------------
-function [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-
-% output parameters initialization
-o_dataValues = [];
-
-idVal = find(strcmp(a_dataName, a_dataList), 1);
-if (~isempty(idVal))
-   o_dataValues = a_dataList{idVal+1};
 end
 
 return

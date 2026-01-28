@@ -22,7 +22,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/11/2015 - RNU - creation
@@ -312,7 +312,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   03/03/2017 - RNU - creation
@@ -389,7 +389,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/29/2017 - RNU - creation
@@ -411,7 +411,7 @@ global g_decArgo_nbOf13Or11TypePacketReceived;
 global g_decArgo_nbOf14Or12TypePacketReceived;
 global g_decArgo_nbOf6TypePacketReceived;
 
-% array ro store statistics on received packets
+% array to store statistics on received packets
 global g_decArgo_nbDescentPacketsReceived;
 global g_decArgo_nbParkPacketsReceived;
 global g_decArgo_nbAscentPacketsReceived;

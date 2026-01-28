@@ -13,7 +13,7 @@
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   11/16/2021 - RNU - creation
@@ -40,7 +40,7 @@ global g_MC_DPST;
 global g_MC_MinPresInDriftAtProf;
 global g_MC_MaxPresInDriftAtProf;
 global g_MC_AST;
-global g_MC_IceAscentAbortNum;
+global g_MC_IceAscentAbort;
 global g_MC_AET;
 global g_MC_SpyAtSurface;
 global g_MC_Surface;
@@ -980,12 +980,12 @@ iceAbort.func1{end+1} = '@(x) adjust_time_cts5(x)';
 iceAbort.func2{end+1} = '@(x) julian_2_gregorian_dec_argo(x)';
 iceAbort.name{end+1} = 'ice abort date';
 iceAbort.fmt{end+1} = '%g';
-iceAbort.tech{end+1} = get_cts5_tech_data_init_struct(211, 'Resumed ascent start date');
+iceAbort.tech{end+1} = get_cts5_tech_data_init_struct(211, 'Ice abort date');
 iceAbort.tech{end}.func = '@(x) format_date_yyyymmddhhmiss_dec_argo(x)';
 iceAbort.tech{end}.func1 = '@(x) adjust_time_cts5(x)';
 iceAbort.time{end+1} = [];
 iceAbort.traj{end+1} = get_cts5_traj_data_init_struct(...
-   g_MC_IceAscentAbortNum, 'JULD', ...
+   g_MC_IceAscentAbort, 'JULD', ...
    'Ice abort date');
 iceAbort.traj{end}.group = g_decArgo_trajItemGroupNum;
 
@@ -1008,7 +1008,7 @@ iceAbort.fmt{end+1} = '%d';
 iceAbort.tech{end+1} = get_cts5_tech_data_init_struct(213, 'Pressure of Ice abort');
 iceAbort.time{end+1} = [];
 iceAbort.traj{end+1} = get_cts5_traj_data_init_struct(...
-   g_MC_IceAscentAbortNum, 'PRES', ...
+   g_MC_IceAscentAbort, 'PRES', ...
    'Pressure of Ice abort');
 iceAbort.traj{end}.group = g_decArgo_trajItemGroupNum;
 g_decArgo_trajItemGroupNum = g_decArgo_trajItemGroupNum + 1;
@@ -3246,7 +3246,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3288,7 +3288,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3325,7 +3325,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3361,7 +3361,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3394,7 +3394,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation

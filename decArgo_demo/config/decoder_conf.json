@@ -28,7 +28,10 @@
     "DIR_OUTPUT_CSV_FILE" : "/mnt/data/output/csv/",
     "DIR_OUTPUT_XML_FILE" : "/mnt/data/output/xml/",
     "DIR_OUTPUT_NETCDF_FILE" : "/mnt/data/output/nc/",
+    "DIR_OUTPUT_NETCDF_TRAJ_3_1_FILE" : "/mnt/data/output/nc/",
     "DIR_OUTPUT_NETCDF_TRAJ_3_2_FILE" : "/mnt/data/output/nc/",
+
+    "DIR_OUTPUT_TEMPORARY" : "/tmp",
  
     "PROCESS_REMAINING_BUFFERS" : "0",
  
@@ -41,8 +44,7 @@
  
     "ADD_ARGOS_ERROR_ELLIPSES" : "0",
     "DIR_INPUT_ARGOS_ERROR_ELLIPSES_MAIL" : "",
-    "DIR_INPUT_ARGOS_ERROR_ELLIPSES_WS_SPOOL" : "",
-    "DIR_INPUT_ARGOS_ERROR_ELLIPSES_WS_ARCHIVE" : "",
+    "DIR_INPUT_ARGOS_ERROR_ELLIPSES_WS" : "",
  
     "APPLY_RTQC" : "0",
     "TEST001_PLATFORM_IDENTIFICATION" : "1",
@@ -58,7 +60,7 @@
     "TEST012_DIGIT_ROLLOVER" : "1",
     "TEST013_STUCK_VALUE" : "1",
     "TEST014_DENSITY_INVERSION" : "1",
-    "TEST015_GREY_LIST" : "1",
+    "TEST015_EXCLUSION_LIST" : "1",
     "TEST016_GROSS_SALINITY_OR_TEMPERATURE_SENSOR_DRIFT" : "0",
     "TEST018_FROZEN_PRESSURE" : "0",
     "TEST019_DEEPEST_PRESSURE" : "1",
@@ -72,10 +74,13 @@
     "TEST056_PH" : "1",
     "TEST057_DOXY" : "1",
     "TEST059_NITRATE" : "1",
+    "TEST060_PAR" : "1",
+    "TEST061_IRRADIANCE" : "1",
     "TEST062_BBP" : "1",
     "TEST063_CHLA" : "1",
+
     "TEST004_GEBCO_FILE" : "/mnt/ref/gebco.nc",
-    "TEST015_GREY_LIST_FILE" : "/tmp/ar_greylist.txt",
+    "TEST015_EXCLUSION_LIST_FILE" : "/tmp/ar_exclusionlist.txt",
 
     "WOA_FILE" : "/mnt/ref/woa13_all_n00_01.nc",
     "CHLA_COR_FACT_FILE" : "/mnt/ref/SLOPE_RT_2024.txt",

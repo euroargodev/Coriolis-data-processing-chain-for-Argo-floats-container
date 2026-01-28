@@ -15,7 +15,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/18/2013 - RNU - creation
@@ -209,7 +209,7 @@ for idFile = 1:length(ryncLogList)
          case {121, 122, 123, 124, 125}
             % CTS5-OSEAN Iridium RUDICS floats (rsync to Villefranche global server)
             floatFiles = parse_rsync_log_ir_rudics_cts5(ryncLogList{idFile}, floatLoginName);
-         case {126, 127, 128, 129, 130, 131, 132, 133, 134}
+         case {126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141}
             % CTS5-USEA Iridium RUDICS floats
             floatFiles = parse_rsync_log_ir_rudics_cts5_usea(ryncLogList{idFile}, floatLoginName);
          otherwise

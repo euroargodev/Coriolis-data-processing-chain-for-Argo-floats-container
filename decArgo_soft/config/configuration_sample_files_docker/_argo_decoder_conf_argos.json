@@ -5,30 +5,32 @@
    
    "FLOAT_TRANSMISSION_TYPE" : "1",
    
-   "DIR_INPUT_JSON_FLOAT_DECODING_PARAMETERS_FILE" : "/home/coriolis_dev/val/spool/co04/co0414/co041404/decArgo_config_floats/json_float_info/",
+   "DIR_INPUT_JSON_FLOAT_DECODING_PARAMETERS_FILE" : "/mnt/data/config/decArgo_config_floats/json_float_info/",
 
    "HEX_ARGOS_FILE_FORMAT" : "1",
-   "DIR_INPUT_HEX_ARGOS_FILE_FORMAT_1" : "/home/coriolis_dev/val/spool/co01/co0101/co010102/archive/cycle/",
+   "DIR_INPUT_HEX_ARGOS_FILE_FORMAT_1" : "/mnt/data/rsync/archive/cycle/",
    "DIR_INPUT_HEX_ARGOS_FILE_FORMAT_2" : "",
    "HEX_ARGOS_DATA_DIRECTORY_STRUCTURE" : "3",
    
    "DIR_INPUT_RSYNC_DATA" : "",
    "DIR_INPUT_RSYNC_LOG" : "",
 
-   "DIR_INPUT_JSON_TECH_LABEL_FILE" : "/home/coriolis_dev/val/spool/co04/co0414/co041404/decArgo_20160708/decArgo_soft/config/techParamNames/", 
-   "DIR_INPUT_JSON_CONF_LABEL_FILE" : "/home/coriolis_dev/val/spool/co04/co0414/co041404/decArgo_20160708/decArgo_soft/config/configParamNames/",
+   "DIR_INPUT_JSON_TECH_LABEL_FILE" : "/app/config/_techParamNames/",
+   "DIR_INPUT_JSON_CONF_LABEL_FILE" : "/app/config/_configParamNames/",
 
-   "DIR_INPUT_JSON_FLOAT_META_DATA_FILE" : "/home/coriolis_dev/val/spool/co04/co0414/co041404/decArgo_config_floats/json_float_meta_argos/",
+   "DIR_INPUT_JSON_FLOAT_META_DATA_FILE" : "/mnt/data/config/decArgo_config_floats/",
 
    "IRIDIUM_DATA_DIRECTORY" : "",
 
-   "DIR_OUTPUT_LOG_FILE" : "C:/Users/jprannou/_RNU/DecArgo_soft/work/log/",
-   "DIR_OUTPUT_CSV_FILE" : "C:/Users/jprannou/_RNU/DecArgo_soft/work/csv/",
-   "DIR_OUTPUT_XML_FILE" : "C:/Users/jprannou/_RNU/DecArgo_soft/work/xml/",
-   "DIR_OUTPUT_NETCDF_FILE" : "C:/Users/jprannou/_DATA/OUT/nc_output_decArgo_rt/",
-   "DIR_OUTPUT_NETCDF_TRAJ_3_1_FILE" : "C:/Users/jprannou/_DATA/OUT/nc_output_decArgo_rt_traj3.1/",
-   "DIR_OUTPUT_NETCDF_TRAJ_3_2_FILE" : "C:/Users/jprannou/_DATA/OUT/nc_output_decArgo_rt/",
-   
+   "DIR_OUTPUT_LOG_FILE" : "/mnt/data/output/log/",
+   "DIR_OUTPUT_CSV_FILE" : "/mnt/data/output/csv/",
+   "DIR_OUTPUT_XML_FILE" : "/mnt/data/output/xml/",
+   "DIR_OUTPUT_NETCDF_FILE" : "/mnt/data/output/nc",
+   "DIR_OUTPUT_NETCDF_TRAJ_3_1_FILE" : "/mnt/data/output/nc/",
+   "DIR_OUTPUT_NETCDF_TRAJ_3_2_FILE" : "/mnt/data/output/nc/",
+
+   "DIR_OUTPUT_TEMPORARY" : "/tmp",
+
    "PROCESS_REMAINING_BUFFERS" : "0",    
 
    "GENERATE_NC_MULTI_PROF" : "0",
@@ -57,7 +59,7 @@
    "TEST012_DIGIT_ROLLOVER" : "1",
    "TEST013_STUCK_VALUE" : "1",
    "TEST014_DENSITY_INVERSION" : "1",
-   "TEST015_GREY_LIST" : "1",
+   "TEST015_EXCLUSION_LIST" : "1",
    "TEST016_GROSS_SALINITY_OR_TEMPERATURE_SENSOR_DRIFT" : "0",
    "TEST018_FROZEN_PRESSURE" : "0",
    "TEST019_DEEPEST_PRESSURE" : "1",
@@ -74,11 +76,11 @@
    "TEST062_BBP" : "1",
    "TEST063_CHLA" : "1",
 
-   "TEST004_GEBCO_FILE" : "C:/Users/jprannou/_RNU/_ressources/GEBCO_2020/GEBCO_2020.nc",
-   "TEST015_GREY_LIST_FILE" : "C:/Users/jprannou/_RNU/DecArgo_soft/work/ar_greylist.txt",
+   "TEST004_GEBCO_FILE" : "/mnt/ref/gebco.nc",
+   "TEST015_EXCLUSION_LIST_FILE" : "/tmp/ar_exclusionlist.txt",
 
-   "WOA_FILE" : "C:/Users/jprannou/_RNU/_ressources/WOA/woa13_all_n00_01.nc",
-   "CHLA_COR_FACT_FILE" : "C:/Users/jprannou/_RNU/_ressources/CHLA_COR_FACT/SLOPE_RT_2024.txt",
+   "WOA_FILE" : "/mnt/ref/woa13_all_n00_01.nc",
+   "CHLA_COR_FACT_FILE" : "/mnt/ref/SLOPE_RT_2024.txt",
 
    "ADD_THREE_MINUTES" : "0"
 }

@@ -1,5 +1,5 @@
 % ------------------------------------------------------------------------------
-% Store technical message #2 data for output NetCDF file.
+% Store technical message #3 data for output NetCDF file.
 %
 % SYNTAX :
 %  store_tech3_data_for_nc_228(a_tabTech, a_deepCycle)
@@ -13,7 +13,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/14/2024 - RNU - creation
@@ -88,7 +88,7 @@ if (a_deepCycle == 1)
       g_decArgo_cycleNum 342];
    g_decArgo_outputNcParamValue{end+1} = sensor_2_value_for_pressure_3T_228_2T_229(tabTech3(45));
 
-   % TECH3 information #46 to #52 not use (seems inconsistent)
+   % TECH3 information #46 to #52 not used (seems inconsistent)
    % g_decArgo_outputNcParamIndex = [g_decArgo_outputNcParamIndex;
    %    g_decArgo_cycleNum 343];
    % g_decArgo_outputNcParamValue{end+1} = sensor_2_value_for_pressure_3T_228_2T_229(tabTech3(46));

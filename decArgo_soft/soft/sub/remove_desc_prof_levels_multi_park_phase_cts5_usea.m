@@ -15,7 +15,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %  07/08/2024 - RNU - creation
@@ -41,37 +41,39 @@ if (any([o_tabProfiles.direction] == 'D'))
       confName = 'CONFIG_APMT_PATTERN_01_P01';
       confId = find(strcmp(confName, configNames), 1);
       if (any(isnan(configValues(confId, :))))
-         idTraj = find([a_tabTrajNCycle.outputCycleNumber] == prof.outputCycleNumber);
-         if (~isempty(idTraj) && ~isempty(a_tabTrajNCycle(idTraj).juldParkStart))
-            idToDel = find(prof.dates > a_tabTrajNCycle(idTraj).juldParkStart);
-            if (~isempty(idToDel))
-               prof.data(idToDel, :) = [];
-               if (~isempty(prof.dataQc))
-                  prof.dataQc(idToDel, :) = [];
-               end
-               if (~isempty(prof.dataAdj))
-                  prof.dataAdj(idToDel, :) = [];
-               end
-               if (~isempty(prof.dataAdjQc))
-                  prof.dataAdjQc(idToDel, :) = [];
-               end
-               if (~isempty(prof.dataAdjError))
-                  prof.dataAdjError(idToDel, :) = [];
-               end
-               if (~isempty(prof.ptsForDoxy))
-                  prof.ptsForDoxy(idToDel, :) = [];
-               end
-               if (~isempty(prof.rmsError))
-                  prof.rmsError(idToDel) = [];
-               end
-               if (~isempty(prof.dates))
-                  prof.dates(idToDel) = [];
-               end
-               if (~isempty(prof.datesAdj))
-                  prof.datesAdj(idToDel) = [];
-               end
+         idTrajList = find([a_tabTrajNCycle.outputCycleNumber] == prof.outputCycleNumber);
+         for idTraj = idTrajList
+            if (~isempty(a_tabTrajNCycle(idTraj).juldParkStart))
+               idToDel = find(prof.dates > a_tabTrajNCycle(idTraj).juldParkStart);
+               if (~isempty(idToDel))
+                  prof.data(idToDel, :) = [];
+                  if (~isempty(prof.dataQc))
+                     prof.dataQc(idToDel, :) = [];
+                  end
+                  if (~isempty(prof.dataAdj))
+                     prof.dataAdj(idToDel, :) = [];
+                  end
+                  if (~isempty(prof.dataAdjQc))
+                     prof.dataAdjQc(idToDel, :) = [];
+                  end
+                  if (~isempty(prof.dataAdjError))
+                     prof.dataAdjError(idToDel, :) = [];
+                  end
+                  if (~isempty(prof.ptsForDoxy))
+                     prof.ptsForDoxy(idToDel, :) = [];
+                  end
+                  if (~isempty(prof.rmsError))
+                     prof.rmsError(idToDel) = [];
+                  end
+                  if (~isempty(prof.dates))
+                     prof.dates(idToDel) = [];
+                  end
+                  if (~isempty(prof.datesAdj))
+                     prof.datesAdj(idToDel) = [];
+                  end
 
-               o_tabProfiles(idProf) = prof;
+                  o_tabProfiles(idProf) = prof;
+               end
             end
          end
       end

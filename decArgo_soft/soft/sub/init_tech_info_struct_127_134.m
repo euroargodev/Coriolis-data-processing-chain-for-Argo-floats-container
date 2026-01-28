@@ -13,7 +13,7 @@
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/12/2021 - RNU - creation
@@ -969,7 +969,7 @@ iceAbort.func1{end+1} = '@(x) adjust_time_cts5(x)';
 iceAbort.func2{end+1} = '@(x) julian_2_gregorian_dec_argo(x)';
 iceAbort.name{end+1} = 'ice abort date';
 iceAbort.fmt{end+1} = '%g';
-iceAbort.tech{end+1} = get_cts5_tech_data_init_struct(211, 'Resumed ascent start date');
+iceAbort.tech{end+1} = get_cts5_tech_data_init_struct(211, 'Ice abort date');
 iceAbort.tech{end}.func = '@(x) format_date_yyyymmddhhmiss_dec_argo(x)';
 iceAbort.tech{end}.func1 = '@(x) adjust_time_cts5(x)';
 iceAbort.time{end+1} = [];
@@ -2990,7 +2990,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3032,7 +3032,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3069,7 +3069,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3105,7 +3105,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation
@@ -3138,7 +3138,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/22/2020 - RNU - creation

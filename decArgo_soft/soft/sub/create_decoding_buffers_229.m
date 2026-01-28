@@ -15,7 +15,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/10/2024 - RNU - creation
@@ -128,7 +128,10 @@ if (any(diff(tabResetDate(idPackType4)) > 0))
       resetId = idPackType4(resetListId(idR));
       resetDate = tabResetDate(resetId);
       tabResetFlag(resetId) = 1;
-      cycNumPrev = tabCyNum(find(tabDate < resetDate, 1, 'last'));
+
+      % cycNumPrev = tabCyNum(find(tabDate < resetDate, 1, 'last'));
+      cycNumPrev = max(tabCyNum(find(tabDate < resetDate))); % example 6904097 (the last cycle is cycle #23 but transmitted after cycle #24)
+
       firstPack = find(tabDate >= resetDate, 1);
       
       fprintf('INFO: Float #%d: A reset has been performed at sea on %s\n', ...
@@ -712,7 +715,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/22/2024 - RNU - creation
@@ -968,7 +971,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/22/2024 - RNU - creation

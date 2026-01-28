@@ -14,7 +14,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/11/2010 - RNU - creation
@@ -59,6 +59,9 @@ global g_decArgo_dirOutputNetcdfFile;
 global g_decArgo_dirOutputTraj31NetcdfFile;
 global g_decArgo_dirOutputTraj32NetcdfFile;
 
+% temporary directory used to store generated NetCDF files
+global g_decArgo_ncTempDir;
+
 global g_decArgo_processRemainingBuffers;
 
 global g_decArgo_generateNcMultiProf;
@@ -101,11 +104,13 @@ global g_decArgo_rtqcTest26;
 global g_decArgo_rtqcTest56;
 global g_decArgo_rtqcTest57;
 global g_decArgo_rtqcTest59;
+global g_decArgo_rtqcTest60;
+global g_decArgo_rtqcTest61;
 global g_decArgo_rtqcTest62;
 global g_decArgo_rtqcTest63;
 
 global g_decArgo_rtqcGebcoFile;
-global g_decArgo_rtqcGreyList;
+global g_decArgo_rtqcExclusionList;
 
 global g_decArgo_woaFile;
 global g_decArgo_chlaCorFactFile;
@@ -146,6 +151,7 @@ configVar{end+1} = 'DIR_OUTPUT_NETCDF_TRAJ_3_1_FILE';
 configVar{end+1} = 'DIR_OUTPUT_NETCDF_TRAJ_3_2_FILE';
 
 if (g_decArgo_realtimeFlag)
+   configVar{end+1} = 'DIR_OUTPUT_TEMPORARY';
    configVar{end+1} = 'PROCESS_REMAINING_BUFFERS';
 end
 
@@ -175,7 +181,7 @@ configVar{end+1} = 'TEST011_GRADIENT';
 configVar{end+1} = 'TEST012_DIGIT_ROLLOVER';
 configVar{end+1} = 'TEST013_STUCK_VALUE';
 configVar{end+1} = 'TEST014_DENSITY_INVERSION';
-configVar{end+1} = 'TEST015_GREY_LIST';
+configVar{end+1} = 'TEST015_EXCLUSION_LIST';
 configVar{end+1} = 'TEST016_GROSS_SALINITY_OR_TEMPERATURE_SENSOR_DRIFT';
 configVar{end+1} = 'TEST018_FROZEN_PRESSURE';
 configVar{end+1} = 'TEST019_DEEPEST_PRESSURE';
@@ -189,11 +195,13 @@ configVar{end+1} = 'TEST026_TEMP_CNDC';
 configVar{end+1} = 'TEST056_PH';
 configVar{end+1} = 'TEST057_DOXY';
 configVar{end+1} = 'TEST059_NITRATE';
+configVar{end+1} = 'TEST060_PAR';
+configVar{end+1} = 'TEST061_IRRADIANCE';
 configVar{end+1} = 'TEST062_BBP';
 configVar{end+1} = 'TEST063_CHLA';
 
 configVar{end+1} = 'TEST004_GEBCO_FILE';
-configVar{end+1} = 'TEST015_GREY_LIST_FILE';
+configVar{end+1} = 'TEST015_EXCLUSION_LIST_FILE';
 
 configVar{end+1} = 'WOA_FILE';
 configVar{end+1} = 'CHLA_COR_FACT_FILE';
@@ -263,6 +271,8 @@ if (o_inputError == 0)
    configVal(1) = [];
 
    if (g_decArgo_realtimeFlag)
+      g_decArgo_ncTempDir = configVal{1};
+      configVal(1) = [];
       g_decArgo_processRemainingBuffers = str2num(configVal{1});
       configVal(1) = [];
    end
@@ -354,6 +364,10 @@ if (o_inputError == 0)
    configVal(1) = [];
    g_decArgo_rtqcTest59 = str2num(configVal{1});
    configVal(1) = [];
+   g_decArgo_rtqcTest60 = str2num(configVal{1});
+   configVal(1) = [];
+   g_decArgo_rtqcTest61 = str2num(configVal{1});
+   configVal(1) = [];
    g_decArgo_rtqcTest62 = str2num(configVal{1});
    configVal(1) = [];
    g_decArgo_rtqcTest63 = str2num(configVal{1});
@@ -361,7 +375,7 @@ if (o_inputError == 0)
    
    g_decArgo_rtqcGebcoFile = configVal{1};
    configVal(1) = [];
-   g_decArgo_rtqcGreyList = configVal{1};
+   g_decArgo_rtqcExclusionList = configVal{1};
    configVal(1) = [];
 
    g_decArgo_woaFile = configVal{1};

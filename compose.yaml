@@ -10,7 +10,7 @@ services:
       - ${DECODER_DATA_INPUT_VOLUME}:/mnt/data/rsync:rw
       - ${DECODER_DATA_CONF_VOLUME}:/mnt/data/config:ro
       - ${DECODER_DATA_OUTPUT_VOLUME}:/mnt/data/output:rw
-      - ${DECODER_REF_GREYLIST_FILE}:/tmp/ar_greylist.txt:ro
+      # - ${DECODER_REF_EXCLUSION_FILE}:/tmp/ar_exclusionlist.txt:ro
     command: ${DECODER_COMMAND}
     group_add:
       - gbatch

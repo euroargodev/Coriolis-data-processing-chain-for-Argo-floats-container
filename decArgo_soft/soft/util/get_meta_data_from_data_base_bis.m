@@ -13,7 +13,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/06/2015 - RNU - creation
@@ -24,7 +24,13 @@ function get_meta_data_from_data_base_bis()
 dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\3902583_RBR_5.52.txt';
 dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\DBexport_deep3T.txt';
 dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\DBexport_deep2T.txt';
-
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\DBexport_Deep_2DO_Rinko.txt';
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\DBexport_PFV2.txt';
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\dbExport_5.53_5907096_5907097.txt';
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\DBexport_Ukraine_Arvor_5.54.txt';
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\6990728_PFV2_8.02_dbExport.txt';
+dataBaseFileName = 'C:\Users\jprannou\_RNU\DecPrv_info\_configParamNames\DB_Export\db_export_CTS5_7.24_OGS_tridente_pal.txt';
+dataBaseFileName = 'C:\Users\jprannou\Desktop\SOS_VB_apx_olaf2\dbexport_ApexOlaf2.txt';
 
 % list of concerned floats
 floatListFileName = '';

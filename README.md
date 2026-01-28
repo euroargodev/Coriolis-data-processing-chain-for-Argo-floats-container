@@ -36,7 +36,7 @@ graph TD
 - `/mnt/data/rsync` : Input files directory
 - `/mnt/data/config` : external configurations directory
 - `/mnt/ref/gebco.nc` : GEBCO file
-- `/tmp/ar_greylist.txt` :Greylist
+- `/tmp/ar_exclusionlist.txt` : Exclusion list
 
 ## Run image in your environment
 
@@ -59,7 +59,7 @@ In this section we propose two ways to run the decoder, it's up to you to choose
 | **Linux Operating System** | **Windows Operating System** |
 |----------------------------|-------------------------------|
 | Customize the following variables in `docker-decoder-linux.sh`: | Customize the following variables in `docker-decoder-windows.bat`: |
-| `DECODER_IMAGE_TAG=<decoder image tag> # example : 066a`<br>`DECODER_RUNTIME_VOLUME=<path to runtime directory>`<br>`DECODER_DATA_INPUT_VOLUME=<path to input directory>`<br>`DECODER_DATA_CONF_VOLUME=<path to conf directory>`<br>`DECODER_DATA_OUTPUT_VOLUME=<path to output directory>`<br>`DECODER_REF_GEBCO_FILE=<path to gebco file> # optional`<br>`DECODER_REF_GREYLIST_FILE=<path to greylist file> # optional`<br>`USER_ID=<uid volumes owner> # must match with volumes owner`<br>`GROUP_ID=<gid volumes owner> # must match with volumes owner` | `set DECODER_IMAGE_TAG=<decoder image tag>`<br>`set DECODER_RUNTIME_VOLUME=<path to runtime directory>`<br>`set DECODER_DATA_INPUT_VOLUME=<path to input directory>`<br>`set DECODER_DATA_CONF_VOLUME=<path to conf directory>`<br>`set DECODER_DATA_OUTPUT_VOLUME=<path to output directory>`<br>`set DECODER_REF_GEBCO_FILE=<path to gebco file> # optional`<br>`set DECODER_REF_GREYLIST_FILE=<path to greylist file> # optional` |
+| `DECODER_IMAGE_TAG=<decoder image tag> # example : 066a`<br>`DECODER_RUNTIME_VOLUME=<path to runtime directory>`<br>`DECODER_DATA_INPUT_VOLUME=<path to input directory>`<br>`DECODER_DATA_CONF_VOLUME=<path to conf directory>`<br>`DECODER_DATA_OUTPUT_VOLUME=<path to output directory>`<br>`DECODER_REF_GEBCO_FILE=<path to gebco file> # optional`<br>`DECODER_REF_EXCLUSION_FILE=<path to exclusion file> # optional`<br>`USER_ID=<uid volumes owner> # must match with volumes owner`<br>`GROUP_ID=<gid volumes owner> # must match with volumes owner` | `set DECODER_IMAGE_TAG=<decoder image tag>`<br>`set DECODER_RUNTIME_VOLUME=<path to runtime directory>`<br>`set DECODER_DATA_INPUT_VOLUME=<path to input directory>`<br>`set DECODER_DATA_CONF_VOLUME=<path to conf directory>`<br>`set DECODER_DATA_OUTPUT_VOLUME=<path to output directory>`<br>`set DECODER_REF_GEBCO_FILE=<path to gebco file> # optional`<br>`set DECODER_REF_EXCLUSION_FILE=<path to exclusion file> # optional` |
 | Run the script to decode a single float:`./docker-decoder-linux.sh 6902892` | Run the script to decode a single float:`./docker-decoder-windows.bat 6902892` |
 
 ---

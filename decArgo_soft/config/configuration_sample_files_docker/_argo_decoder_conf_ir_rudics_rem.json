@@ -30,7 +30,9 @@
    "DIR_OUTPUT_NETCDF_FILE" : "/mnt/data/output/nc",
    "DIR_OUTPUT_NETCDF_TRAJ_3_1_FILE" : "/mnt/data/output/nc/",
    "DIR_OUTPUT_NETCDF_TRAJ_3_2_FILE" : "/mnt/data/output/nc/",
-   
+
+   "DIR_OUTPUT_TEMPORARY" : "/tmp",
+
    "PROCESS_REMAINING_BUFFERS" : "0",    
 
    "GENERATE_NC_MULTI_PROF" : "0",
@@ -59,7 +61,7 @@
    "TEST012_DIGIT_ROLLOVER" : "1",
    "TEST013_STUCK_VALUE" : "1",
    "TEST014_DENSITY_INVERSION" : "1",
-   "TEST015_GREY_LIST" : "1",
+   "TEST015_EXCLUSION_LIST" : "1",
    "TEST016_GROSS_SALINITY_OR_TEMPERATURE_SENSOR_DRIFT" : "0",
    "TEST018_FROZEN_PRESSURE" : "0",
    "TEST019_DEEPEST_PRESSURE" : "1",
@@ -77,8 +79,8 @@
    "TEST063_CHLA" : "1",
 
    "TEST004_GEBCO_FILE" : "/mnt/ref/gebco.nc",
-   "TEST015_GREY_LIST_FILE" : "/tmp/ar_greylist.txt",
-   
+   "TEST015_EXCLUSION_LIST_FILE" : "/tmp/ar_exclusionlist.txt",
+
    "WOA_FILE" : "/mnt/ref/woa13_all_n00_01.nc",
    "CHLA_COR_FACT_FILE" : "/mnt/ref/SLOPE_RT_2024.txt",
 

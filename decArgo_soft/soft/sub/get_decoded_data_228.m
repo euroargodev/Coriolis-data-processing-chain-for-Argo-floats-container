@@ -26,7 +26,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/22/2024 - RNU - creation
@@ -54,7 +54,7 @@ global g_decArgo_floatNum;
 % current cycle number
 global g_decArgo_cycleNum;
 
-% array ro store statistics on received packets
+% array to store statistics on received packets
 global g_decArgo_nbDescentPacketsReceived;
 global g_decArgo_nbDescent3TPacketsReceived;
 global g_decArgo_nbParkPacketsReceived;

@@ -29,7 +29,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/10/2016 - RNU - V 1.0: creation
@@ -61,11 +61,11 @@
 %   10/05/2016 - RNU - V 1.8: when considering "in air" single measurements
 %                             (MC=g_MC_InAirSingleMeas), consider also "in air"
 %                             series of measurements (MC=g_MC_InAirSeriesOfMeas).
-%   12/06/2016 - RNU - V 1.9: Test #57: new specific test defined for DOXY 
+%   12/06/2016 - RNU - V 1.9: Test #57: new specific test defined for DOXY
 %                             (if TEMP_QC=4 or PRES_QC=4, then DOXY_QC=4; if
 %                              PSAL_QC=4, then DOXY_QC=3).
 %   02/13/2017 - RNU - V 2.0: code update to manage CTS5 float data:
-%                             - PRES2, TEMP2 and PSAL2 are present when a SUNA 
+%                             - PRES2, TEMP2 and PSAL2 are present when a SUNA
 %                               sensor is used
 %   03/14/2017 - RNU - V 2.1: - code update to fix issues detected by the TRAJ
 %                             checker: QC values are updated in 'c' and 'b'
@@ -94,9 +94,9 @@
 %   03/26/2019 - RNU - V 2.5: Added RTQC tests for NITRATE parameter
 %   07/15/2019 - RNU - V 2.6: In version 3.2 of the QC manual, for test #7, the
 %                             minimal range for TEMP in the Read Sea has been
-%                             set to 21°C (instead of 21.7°C).
+%                             set to 21Â°C (instead of 21.7Â°C).
 %   09/23/2019 - RNU - V 2.7: Added "Global range test" for DOWN_IRRADIANCE380,
-%                             DOWN_IRRADIANCE412, DOWN_IRRADIANCE443, 
+%                             DOWN_IRRADIANCE412, DOWN_IRRADIANCE443,
 %                             DOWN_IRRADIANCE490 and DOWNWELLING_PAR.
 %   02/25/2020 - RNU - V 2.8: Updated to cope with version 3.3 of core Argo
 %                             Quality Control Manual:
@@ -133,7 +133,7 @@
 %                             for c, b, ic and ib parameters (tests #6 and #15
 %                             are concerned).
 %   02/12/2024 - RNU - V 4.0: - RTQC dedicated to TRAJ format 3.2 only.
-%                             - update of TEST #56 "PH specific test" to be 
+%                             - update of TEST #56 "PH specific test" to be
 %                             compliant with version 1.0 or Argo manual
 %                             "BGC-Argo quality control manual for pH".
 %                             - no difference between a PTSO float and a "true
@@ -142,6 +142,14 @@
 %                             (get_param_data) to be able to mix DATA_MODE.
 %   05/15/2024 - RNU - V 4.1: Insert (PRES3, TEMP3, PSAL3) profile for Arvor
 %                             Deep 3T prototype (decId 228)
+%   12/13/2024 - RNU - V 4.2: TEST #60 PAR specific test added:
+%                             Set DOWNWELLING_PAR_QC to '2'
+%                             TEST #61 IRRADIANCE specific test added:
+%                             Set DOWN_IRRADIANCExxx_QC to '2'
+%   12/08/2025 - RNU - V 4.3: New management of N_HISTORY index.
+%   01/28/2026 - RNU - V 4.4: HISTORY_INSTITUTION is set from DATA_CENTRE
+%                             information stored in the META.json file (needed
+%                             by the docker version).
 % ------------------------------------------------------------------------------
 function add_rtqc_to_trajectory_file(a_floatNum, ...
    a_ncTrajInputFilePathName, a_ncTrajOutputFilePathName, ...
@@ -165,6 +173,10 @@ global g_decArgo_qcStrChanged;       % '5'
 global g_decArgo_qcStrInterpolated;  % '8'
 global g_decArgo_qcStrMissing;       % '9'
 
+% CHLA range min/max for RTQC test 6 (global range test)
+global g_decArgo_rtqcTest6ChlaMin;
+global g_decArgo_rtqcTest6ChlaMax;
+
 % global measurement codes
 global g_MC_InWaterSeriesOfMeasPartOfEndOfProfileRelativeToTST;
 global g_MC_InAirSingleMeasRelativeToTST;
@@ -185,7 +197,7 @@ global g_JULD_STATUS_9;
 
 % program version
 global g_decArgo_addRtqcToTrajVersion;
-g_decArgo_addRtqcToTrajVersion = '4.1';
+g_decArgo_addRtqcToTrajVersion = '4.4';
 
 % Argo data start date
 janFirst1997InJulD = gregorian_2_julian_dec_argo('1997/01/01 00:00:00');
@@ -255,13 +267,15 @@ expectedTestList = [ ...
    {'TEST004_POSITION_ON_LAND'} ...
    {'TEST006_GLOBAL_RANGE'} ...
    {'TEST007_REGIONAL_RANGE'} ...
-   {'TEST015_GREY_LIST'} ...
+   {'TEST015_EXCLUSION_LIST'} ...
    {'TEST020_QUESTIONABLE_ARGOS_POSITION'} ...
    {'TEST021_NS_UNPUMPED_SALINITY'} ...
    {'TEST022_NS_MIXED_AIR_WATER'} ...
    {'TEST056_PH'} ...
    {'TEST057_DOXY'} ...
    {'TEST059_NITRATE'} ...
+   {'TEST060_PAR'} ...
+   {'TEST061_IRRADIANCE'} ...
    {'TEST062_BBP'} ...
    {'TEST063_CHLA'} ...
    ];
@@ -324,17 +338,17 @@ if (testFlagList(4) == 1)
 end
 
 if (testFlagList(15) == 1)
-   % for grey list test, we need the greylist file path name
-   testMetaId = find(strcmp('TEST015_GREY_LIST_FILE', a_testMetaData) == 1);
+   % for supplemental sensor exclusion list test, we need the exclusion list file path name
+   testMetaId = find(strcmp('TEST015_EXCLUSION_LIST_FILE', a_testMetaData) == 1);
    if (~isempty(testMetaId))
-      greyListPathFileName = a_testMetaData{testMetaId+1};
-      if ~(exist(greyListPathFileName, 'file') == 2)
-         fprintf('RTQC_WARNING: TEST015: Float #%d: Grey list file (%s) not found - test #15 not performed\n', ...
-            a_floatNum, greyListPathFileName);
+      exclusionListPathFileName = a_testMetaData{testMetaId+1};
+      if ~(exist(exclusionListPathFileName, 'file') == 2)
+         fprintf('RTQC_WARNING: TEST015: Float #%d: Exclusion list file (%s) not found - test #15 not performed\n', ...
+            a_floatNum, exclusionListPathFileName);
          testFlagList(15) = 0;
       end
    else
-      fprintf('RTQC_WARNING: TEST005: Float #%d: Grey list file needed to perform test #15 - test #15 not performed\n', ...
+      fprintf('RTQC_WARNING: TEST005: Float #%d: Exclusion list file needed to perform test #15 - test #15 not performed\n', ...
          a_floatNum);
       testFlagList(15) = 0;
    end
@@ -639,7 +653,7 @@ for idParam = 1:length(ncTrajParamNameList)
    ncTrajParamDataQcList{end+1} = paramNameQcData;
    paramInfo = get_netcdf_param_attributes(paramName);
    ncTrajParamFillValueList{end+1} = paramInfo.fillValue;
-   
+
    data = get_data_from_name(paramName, ncTrajData);
    if (size(data, 2) > 1)
       data = permute(data, ndims(data):-1:1);
@@ -661,13 +675,13 @@ for idParam = 1:length(ncTrajParamAdjNameList)
    ncTrajParamAdjDataQcList{end+1} = paramAdjNameQcData;
    paramInfo = get_netcdf_param_attributes(paramAdjName(1:end-9));
    ncTrajParamAdjFillValueList{end+1} = paramInfo.fillValue;
-   
+
    data = get_data_from_name(paramAdjName, ncTrajData);
    if (size(data, 2) > 1)
       data = permute(data, ndims(data):-1:1);
    end
    dataQc = get_data_from_name(paramAdjNameQc, ncTrajData)';
-   
+
    dataStruct.(paramAdjNameData) = data;
    dataStruct.(paramAdjNameQcData) = dataQc;
 end
@@ -765,7 +779,7 @@ positionQc(idProbablyGood) = set_qc(positionQc(idProbablyGood), g_decArgo_qcStrP
 for idD = 1:2
    if (idD == 1)
       % non adjusted data processing
-      
+
       % set the name list
       ncTrajParamXNameList = ncTrajParamNameList;
       ncTrajParamXDataList = ncTrajParamDataList;
@@ -773,20 +787,20 @@ for idD = 1:2
       ncTrajParamXFillValueList = ncTrajParamFillValueList;
    else
       % adjusted data processing
-      
+
       % set the name list
       ncTrajParamXNameList = ncTrajParamAdjNameList;
       ncTrajParamXDataList = ncTrajParamAdjDataList;
       ncTrajParamXDataQcList = ncTrajParamAdjDataQcList;
       ncTrajParamXFillValueList = ncTrajParamAdjFillValueList;
    end
-   
+
    for idParam = 1:length(ncTrajParamXNameList)
       paramName = ncTrajParamXNameList{idParam};
       data = dataStruct.(ncTrajParamXDataList{idParam});
       dataQc = dataStruct.(ncTrajParamXDataQcList{idParam});
       paramFillValue = ncTrajParamXFillValueList{idParam};
-      
+
       if (~isempty(data))
          if (size(data, 2) == 1)
             idNoDef = find(data ~= paramFillValue);
@@ -799,14 +813,14 @@ for idD = 1:2
                end
             end
          end
-         
+
          % initialize Qc flags
          if (a_justAfterDecodingFlag == 1)
             % initialize Qc flags to g_decArgo_qcStrNoQc except for those which
             % have been set by the decoder (in
             % update_qc_from_sensor_state_ir_rudics_sbd2)
             dataQc(idNoDef) = set_qc(dataQc(idNoDef), g_decArgo_qcStrNoQc);
-            
+
             % initialize NITRATE_QC to g_decArgo_qcStrCorrectable
             % initialize NITRATE_ADJUSTED_QC to g_decArgo_qcStrProbablyGood
             if (strcmp(paramName, 'NITRATE'))
@@ -818,7 +832,7 @@ for idD = 1:2
             % initialize Qc flags to g_decArgo_qcStrNoQc
             dataQc = repmat(g_decArgo_qcStrDef, size(dataQc));
             dataQc(idNoDef) = g_decArgo_qcStrNoQc;
-            
+
             % initialize NITRATE_QC to g_decArgo_qcStrCorrectable
             % initialize NITRATE_ADJUSTED_QC to g_decArgo_qcStrProbablyGood
             if (strcmp(paramName, 'NITRATE'))
@@ -836,23 +850,23 @@ end
 % REPORT RTQC PROFILE TEST RESULTS IN TRAJ DATA
 %
 if (~isempty(g_rtqc_trajData))
-   
+
    % initialize parameter Qc with profile RTQC results
 
    % one loop for <PARAM> and one loop for <PARAM>_ADJUSTED
    for idD = 1:2
       if (idD == 1)
          % non adjusted data processing
-         
+
          % set the name list
          ncTrajParamXDataQcList = ncTrajParamDataQcList;
       else
          % adjusted data processing
-         
+
          % set the name list
          ncTrajParamXDataQcList = ncTrajParamAdjDataQcList;
       end
-            
+
       for idParam = 1:length(ncTrajParamXDataQcList)
          if (isfield(g_rtqc_trajData, ncTrajParamXDataQcList{idParam}))
             dataStruct.(ncTrajParamXDataQcList{idParam}) = g_rtqc_trajData.(ncTrajParamXDataQcList{idParam});
@@ -877,7 +891,7 @@ end
 % TEST 2: impossible date test
 %
 if (testFlagList(2) == 1)
-   
+
    % as JULD is a julian date we only need to check it is after 01/01/1997
    % and before the current date
    idNoDef = find(juld ~= paramJuld.fillValue);
@@ -889,7 +903,7 @@ if (testFlagList(2) == 1)
          ((juld(idNoDef)+g_decArgo_janFirst1950InMatlab) > now_utc));
       if (~isempty(idToFlag))
          juldQc(idNoDef(idToFlag)) = set_qc(juldQc(idNoDef(idToFlag)), g_decArgo_qcStrBad);
-         
+
          testFailedList(2) = 1;
       end
       testDoneList(2) = 1;
@@ -914,7 +928,7 @@ end
 % TEST 3: impossible location test
 %
 if (testFlagList(3) == 1)
-   
+
    idNoDef = find((latitude ~= paramLat.fillValue) & (longitude ~= paramLon.fillValue));
    if (~isempty(idNoDef))
       % initialize Qc flag
@@ -924,7 +938,7 @@ if (testFlagList(3) == 1)
          (longitude(idNoDef) > 180) | (longitude(idNoDef) <= -180));
       if (~isempty(idToFlag))
          positionQc(idNoDef(idToFlag)) = set_qc(positionQc(idNoDef(idToFlag)), g_decArgo_qcStrBad);
-         
+
          testFailedList(3) = 1;
       end
       testDoneList(3) = 1;
@@ -935,7 +949,7 @@ end
 % TEST 4: position on land test
 %
 if (testFlagList(4) == 1)
-   
+
    % we check that the mean value of the elevations provided by the GEBCO
    % bathymetric atlas is < 0
    idNoDef = find((latitude ~= paramLat.fillValue) & (longitude ~= paramLon.fillValue) & ...
@@ -975,12 +989,12 @@ end
 % TEST 20: questionable Argos position test
 %
 if (testFlagList(20) == 1)
-   
+
    uCycleNumber = unique(cycleNumber(cycleNumber >= 0));
    cyNumPrev = -1;
    for idCy = 1:length(uCycleNumber)
       cyNum = uCycleNumber(idCy);
-      
+
       idMeasForCy = find(cycleNumber == cyNum);
       idNoDef = find((juld(idMeasForCy) ~= paramJuld.fillValue) & ...
          (latitude(idMeasForCy) ~= paramLat.fillValue) & ...
@@ -990,7 +1004,7 @@ if (testFlagList(20) == 1)
          (positionAccuracy(idMeasForCy) ~= ' ')' & ... % to exclude launch location
          (positionAccuracy(idMeasForCy) ~= 'I')'); % to exclude Iridium locations
       if (~isempty(idNoDef))
-         
+
          lastLocDateOfPrevCycle = g_decArgo_dateDef;
          lastLocLonOfPrevCycle = g_decArgo_argosLonDef;
          lastLocLatOfPrevCycle = g_decArgo_argosLatDef;
@@ -999,14 +1013,14 @@ if (testFlagList(20) == 1)
             lastLocLonOfPrevCycle = lastLocLon;
             lastLocLatOfPrevCycle = lastLocLat;
          end
-         
+
          [positionQc(idMeasForCy(idNoDef))] = compute_jamstec_qc( ...
             juld(idMeasForCy(idNoDef)), ...
             longitude(idMeasForCy(idNoDef)), ...
             latitude(idMeasForCy(idNoDef)), ...
             positionAccuracy(idMeasForCy(idNoDef)), ...
             lastLocDateOfPrevCycle, lastLocLonOfPrevCycle, lastLocLatOfPrevCycle, []);
-         
+
          % keep only 'good' positions for the next cycle
          if (any(positionQc(idMeasForCy(idNoDef)) == g_decArgo_qcStrGood))
             cyNumPrev = cyNum;
@@ -1022,7 +1036,7 @@ if (testFlagList(20) == 1)
             lastLocLon = keepPosLon(idLast);
             lastLocLat = keepPosLat(idLast);
          end
-         
+
          if (any((positionQc(idMeasForCy(idNoDef)) == g_decArgo_qcStrCorrectable) | ...
                (positionQc(idMeasForCy(idNoDef)) == g_decArgo_qcStrBad)))
             testFailedList(20) = 1;
@@ -1094,47 +1108,47 @@ if (a_partialRtqcFlag == 1)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TEST 15: grey list test
+% TEST 15: supplemental sensor exclusion list test
 %
 if (testFlagList(15) == 1)
-   
-   % read grey list file
-   fId = fopen(greyListPathFileName, 'r');
+
+   % read exclusion list file
+   fId = fopen(exclusionListPathFileName, 'r');
    if (fId == -1)
-      fprintf('RTQC_WARNING: TEST015: Float #%d: Unable to open grey list file (%s) - test #15 not performed\n', ...
-         a_floatNum, greyListPathFileName);
+      fprintf('RTQC_WARNING: TEST015: Float #%d: Unable to open exclusion list file (%s) - test #15 not performed\n', ...
+         a_floatNum, exclusionListPathFileName);
    else
       fileContents = textscan(fId, '%s', 'delimiter', ',');
       fclose(fId);
       fileContents = fileContents{:};
       if (rem(size(fileContents, 1), 7) ~= 0)
-         fprintf('RTQC_WARNING: TEST015: Float #%d: Unable to parse grey list file (%s) - test #15 not performed\n', ...
-            a_floatNum, greyListPathFileName);
+         fprintf('RTQC_WARNING: TEST015: Float #%d: Unable to parse exclusion list file (%s) - test #15 not performed\n', ...
+            a_floatNum, exclusionListPathFileName);
       else
-         
-         greyListInfo = reshape(fileContents, 7, size(fileContents, 1)/7)';
-         
+
+         exclusionListInfo = reshape(fileContents, 7, size(fileContents, 1)/7)';
+
          % retrieve information for the current float
-         idF = find(strcmp(num2str(a_floatNum), greyListInfo(:, 1)) == 1);
-         
-         % apply the grey list information
+         idF = find(strcmp(num2str(a_floatNum), exclusionListInfo(:, 1)) == 1);
+
+         % apply the exclusion list information
          presQc4Flag = 0;
          for id = 1:length(idF)
-            
-            startDate = greyListInfo{idF(id), 3};
-            endDate = greyListInfo{idF(id), 4};
-            qcVal = greyListInfo{idF(id), 5};
-            
+
+            startDate = exclusionListInfo{idF(id), 3};
+            endDate = exclusionListInfo{idF(id), 4};
+            qcVal = exclusionListInfo{idF(id), 5};
+
             startDateJuld = datenum(startDate, 'yyyymmdd') - g_decArgo_janFirst1950InMatlab;
             endDateJuld = '';
             if (~isempty(endDate))
                endDateJuld = datenum(endDate, 'yyyymmdd') - g_decArgo_janFirst1950InMatlab;
             end
-            
+
             for idD = 1:2
                if (idD == 1)
                   % non adjusted data processing
-                  
+
                   % set the name list
                   ncTrajParamXNameList = ncTrajParamNameList;
                   ncTrajParamXDataList = ncTrajParamDataList;
@@ -1142,12 +1156,12 @@ if (testFlagList(15) == 1)
                   ncTrajParamXFillValueList = ncTrajParamFillValueList;
                   juldX = juld;
                   juldXQc = juldQc;
-                  
-                  % retrieve grey listed parameter name
-                  paramName = greyListInfo{idF(id), 2};
+
+                  % retrieve exclusion listed parameter name
+                  paramName = exclusionListInfo{idF(id), 2};
                else
                   % adjusted data processing
-                  
+
                   % set the name list
                   ncTrajParamXNameList = ncTrajParamAdjNameList;
                   ncTrajParamXDataList = ncTrajParamAdjDataList;
@@ -1156,10 +1170,10 @@ if (testFlagList(15) == 1)
                   juldX = juldAdj;
                   juldXQc = juldAdjQc;
 
-                  % retrieve grey listed parameter adjusted name
-                  paramName = [greyListInfo{idF(id), 2} '_ADJUSTED'];
+                  % retrieve exclusion listed parameter adjusted name
+                  paramName = [exclusionListInfo{idF(id), 2} '_ADJUSTED'];
                end
-               
+
                cyclelist = [];
                idFirstMeas = find( ...
                   ((juldXQc == g_decArgo_qcStrGood)' | ...
@@ -1167,7 +1181,7 @@ if (testFlagList(15) == 1)
                   (juldX >= startDateJuld), 1, 'first');
                if (~isempty(idFirstMeas))
                   firstCycle = cycleNumber(idFirstMeas);
-                  
+
                   lastCycle = [];
                   if (~isempty(endDateJuld))
                      idLastMeas = find( ...
@@ -1178,7 +1192,7 @@ if (testFlagList(15) == 1)
                         lastCycle = cycleNumber(idLastMeas);
                      end
                   end
-                  
+
                   if (isempty(lastCycle))
                      cyclelist = [firstCycle:max(cycleNumber)];
                   else
@@ -1191,11 +1205,11 @@ if (testFlagList(15) == 1)
                      data = dataStruct.(ncTrajParamXDataList{idParam});
                      dataQc = dataStruct.(ncTrajParamXDataQcList{idParam});
                      paramFillValue = ncTrajParamXFillValueList{idParam};
-                     
+
                      idMeas = find( ...
                         (data ~= paramFillValue) & ...
                         ismember(cycleNumber, cyclelist));
-                     
+
                      % apply the test
                      dataQc(idMeas) = set_qc(dataQc(idMeas), qcVal);
                      dataStruct.(ncTrajParamXDataQcList{idParam}) = dataQc;
@@ -1232,16 +1246,18 @@ if (testFlagList(21) == 1)
    % g_MC_InWaterSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
    % g_MC_InAirSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
    % g_MC_InAirSingleMeasRelativeToTET
-   
+
    if (apexFloatFlag == 0)
 
       % list of parameters concerned by this test
       test21ParameterList = [ ...
          {'PSAL'} ...
          {'PSAL2'} ...
+         {'PSAL_2'} ...
          % {'PSAL3'} ... % not involved in this test because assigned to RBR salinity (decId 228)
          {'DOXY'} ...
          {'DOXY2'} ...
+         {'DOXY_2'} ...
          ];
 
       for idP = 1:length(test21ParameterList)
@@ -1306,7 +1322,7 @@ end
 % TEST 22: near-surface mixed air/water test
 %
 if (testFlagList(22) == 1)
-   
+
    % in this adaptation of test 22 to trajectory data, near-surface measurements
    % are selected through the measurement codes:
    % g_MC_InWaterSeriesOfMeasPartOfEndOfProfileRelativeToTST
@@ -1317,14 +1333,16 @@ if (testFlagList(22) == 1)
 
    % the simplified version of the test implemented here consist in assigning a
    % QC 3 to near-surface mixed air/water tempertaures
-   
+
    % list of parameters concerned by this test
    test22ParameterList = [ ...
       {'TEMP'} ...
       {'TEMP2'} ...
+      {'TEMP_2'} ...
       % {'TEMP3'} ... % not involved in this test because assigned to RBR salinity (decId 228)
       {'TEMP_DOXY'} ...
       {'TEMP_DOXY2'} ...
+      {'TEMP_DOXY_2'} ...
       ];
 
    for idP = 1:size(test22ParameterList, 1)
@@ -1370,26 +1388,32 @@ end
 % TEST 6: global range test
 %
 if (testFlagList(6) == 1)
-   
+
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    % SPECIFIC TO (PRES, TEMP, PSAL) AND (PRES2, TEMP2, PSAL2) AND (PRES3, TEMP3, PSAL3)
-   % if PRES < –5dbar, then PRES_QC = '4', TEMP_QC = '4', PSAL_QC = '4'
-   % elseif –5dbar <= PRES <= –2.4dbar, then PRES_QC = '3', TEMP_QC = '3', PSAL_QC = '3'.
+   % if PRES < â€“5dbar, then PRES_QC = '4', TEMP_QC = '4', PSAL_QC = '4'
+   % elseif â€“5dbar <= PRES <= â€“2.4dbar, then PRES_QC = '3', TEMP_QC = '3', PSAL_QC = '3'.
 
    % should be applied to:
    % (PRES, TEMP, PSAL)
    % (PRES2, TEMP2, PSAL2)
+   % (PRES_2, TEMP_2, PSAL_2)
    % (PRES3, TEMP3, PSAL3)
+   % (PRES_3, TEMP_3, PSAL_3)
    % (PRES, TEMP_DOXY)
    % (PRES, TEMP_DOXY2)
+   % (PRES, TEMP_DOXY_2)
 
    % list of parameters concerned by this test
    test6ParameterList1 = [ ...
       {'PRES'} {'TEMP'} {'PSAL'}; ...
       {'PRES2'} {'TEMP2'} {'PSAL2'}; ...
+      {'PRES_2'} {'TEMP_2'} {'PSAL_2'}; ...
       {'PRES3'} {'TEMP3'} {'PSAL3'}; ...
+      {'PRES_3'} {'TEMP_3'} {'PSAL_3'}; ...
       {'PRES'} {'TEMP_DOXY'} {''}; ...
       {'PRES'} {'TEMP_DOXY2'} {''}; ...
+      {'PRES'} {'TEMP_DOXY_2'} {''}; ...
       ];
 
    presQc4Flag = 0;
@@ -1521,18 +1545,26 @@ if (testFlagList(6) == 1)
    test6ParameterList2 = [ ...
       {'TEMP'} {-2.5} {40} {-2.5} {40}; ...
       {'TEMP2'} {-2.5} {40} {-2.5} {40}; ...
+      {'TEMP_2'} {-2.5} {40} {-2.5} {40}; ...
       {'TEMP3'} {-2.5} {40} {-2.5} {40}; ...
+      {'TEMP_3'} {-2.5} {40} {-2.5} {40}; ...
       {'TEMP_DOXY'} {-2.5} {40} {-2.5} {40}; ...
       {'TEMP_DOXY2'} {-2.5} {40} {-2.5} {40}; ...
+      {'TEMP_DOXY_2'} {-2.5} {40} {-2.5} {40}; ...
       {'PSAL'} {2} {41} {2} {41}; ...
       {'PSAL2'} {2} {41} {2} {41}; ...
+      {'PSAL_2'} {2} {41} {2} {41}; ...
       {'PSAL3'} {2} {41} {2} {41}; ...
+      {'PSAL_3'} {2} {41} {2} {41}; ...
       {'DOXY'} {-5} {600} {-5} {600}; ...
       {'DOXY2'} {-5} {600} {-5} {600}; ...
-      {'CHLA'} {-0.2} {100} {-0.2} {100}; ...
-      {'CHLA2'} {-0.2} {100} {-0.2} {100}; ...
-      {'CHLA_FLUORESCENCE'} {-0.2} {100} {-0.2} {100}; ...
-      {'CHLA_FLUORESCENCE2'} {-0.2} {100} {-0.2} {100}; ...
+      {'DOXY_2'} {-5} {600} {-5} {600}; ...
+      {'CHLA'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
+      {'CHLA2'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
+      {'CHLA_2'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
+      {'CHLA_FLUORESCENCE'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
+      {'CHLA_FLUORESCENCE2'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
+      {'CHLA_FLUORESCENCE_2'} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax} {g_decArgo_rtqcTest6ChlaMin} {g_decArgo_rtqcTest6ChlaMax}; ...
       {'PH_IN_SITU_TOTAL'} {7.0} {8.8} {7.3} {8.5}; ...
       {'NITRATE'} {-2} {50} {-2} {50}; ...
       {'DOWN_IRRADIANCE380'} {-1} {1.7} {-1} {1.7}; ...
@@ -1595,12 +1627,17 @@ if (testFlagList(7) == 1)
    test7ParameterList = [ ...
       {'TEMP'} {21} {40} {10} {40}; ...
       {'TEMP2'} {21} {40} {10} {40}; ...
+      {'TEMP_2'} {21} {40} {10} {40}; ...
       {'TEMP3'} {21} {40} {10} {40}; ...
+      {'TEMP_3'} {21} {40} {10} {40}; ...
       {'TEMP_DOXY'} {21} {40} {10} {40}; ...
       {'TEMP_DOXY2'} {21} {40} {10} {40}; ...
+      {'TEMP_DOXY_2'} {21} {40} {10} {40}; ...
       {'PSAL'} {2} {41} {2} {40}; ...
       {'PSAL2'} {2} {41} {2} {40}; ...
+      {'PSAL_2'} {2} {41} {2} {40}; ...
       {'PSAL3'} {2} {41} {2} {40}; ...
+      {'PSAL_3'} {2} {41} {2} {40}; ...
       ];
 
    % we determine a mean location for each cycle. This mean location is used to
@@ -1783,7 +1820,7 @@ if (testFlagList(56) == 1)
             % if PRES_QC=4 then PH_IN_SITU_TOTAL_QC=4
 
             % retrieve PRES data
-            % if PARAMETER_DATA_MODE = ‘A’ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+            % if PARAMETER_DATA_MODE = â€˜Aâ€™ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
             [presData, presDataQc, presDataFillValue, ~] = ...
                get_param_data('PRES', dataStruct, 'R');
             if (~isempty(presData))
@@ -1807,7 +1844,7 @@ if (testFlagList(56) == 1)
             % if TEMP_QC=4 then PH_IN_SITU_TOTAL_QC=4
 
             % retrieve TEMP data
-            % if PARAMETER_DATA_MODE = ‘A’ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+            % if PARAMETER_DATA_MODE = â€˜Aâ€™ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
             [tempData, tempDataQc, tempDataFillValue, ~] = ...
                get_param_data('TEMP', dataStruct, 'R');
             if (~isempty(tempData))
@@ -1831,7 +1868,7 @@ if (testFlagList(56) == 1)
             % if PSAL_QC=4, then PH_IN_SITU_TOTAL_QC=3
 
             % retrieve PSAL data
-            % if PARAMETER_DATA_MODE = ‘A’ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+            % if PARAMETER_DATA_MODE = â€˜Aâ€™ then PH_IN_SITU_TOTAL_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
             [psalData, psalDataQc, psalDataFillValue, ~] = ...
                get_param_data('PSAL', dataStruct, 'R');
             if (~isempty(psalData))
@@ -1919,12 +1956,12 @@ end
 % TEST 57: DOXY specific test
 %
 if (testFlagList(57) == 1)
-   
+
    %%%%%%%%%%%%%%%%%%%%%%
    % First specific test:
    % if (PARAMETER_SENSOR = OPTODE_DOXY) and (SENSOR_MODEL = SBE63_OPTODE) and
    % (MC = 1100 or any relative measurement) then PPOX_DOXY_QC = '4'
-   
+
    if (ismember('PPOX_DOXY', ncTrajParamNameList))
 
       % initialize Qc flags (because the test is specific to PPOX_DOXY)
@@ -2000,7 +2037,7 @@ if (testFlagList(57) == 1)
    % list of parameters concerned by this test
    test57ParameterList = [ ...
       {'DOXY'} ...
-      {'DOXY2'} ...
+      {'DOXY_2'} ...
       ];
 
    for idP = 1:length(test57ParameterList)
@@ -2026,11 +2063,12 @@ if (testFlagList(57) == 1)
    %%%%%%%%%%%%%%%%%%%%%%
    % Third specific test:
    % if TEMP_QC=4 or PRES_QC=4, then DOXY_QC=4; if PSAL_QC=4, then DOXY_QC=3
-   
+
    % list of parameters concerned by this test
    test57ParameterList2 = [ ...
       {'DOXY'} ...
       {'DOXY2'} ...
+      {'DOXY_2'} ...
       ];
 
    for idP = 1:length(test57ParameterList2)
@@ -2060,7 +2098,7 @@ if (testFlagList(57) == 1)
                % if PRES_QC=4 then DOXY_QC=4
 
                % retrieve PRES data
-               % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+               % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                [presData, presDataQc, presDataFillValue, ~] = ...
                   get_param_data('PRES', dataStruct, 'R');
                if (~isempty(presData))
@@ -2088,7 +2126,7 @@ if (testFlagList(57) == 1)
                   % if TEMP_QC=4 then DOXY_QC=4
 
                   % retrieve TEMP data
-                  % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+                  % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                   [tempData, tempDataQc, tempDataFillValue, ~] = ...
                      get_param_data('TEMP', dataStruct, 'R');
                   if (~isempty(tempData))
@@ -2112,7 +2150,7 @@ if (testFlagList(57) == 1)
                   % if PSAL_QC=4, then DOXY_QC=3
 
                   % retrieve PSAL data
-                  % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+                  % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                   [psalData, psalDataQc, psalDataFillValue, ~] = ...
                      get_param_data('PSAL', dataStruct, 'R');
                   if (~isempty(psalData))
@@ -2140,12 +2178,12 @@ if (testFlagList(57) == 1)
                   % if PSAL_QC=4, then DOXY_QC=3
 
                   % retrieve TEMP data
-                  % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+                  % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                   [~, tempDataQc, ~, ~] = ...
                      get_param_data('TEMP', dataStruct, 'R');
 
                   % retrieve PSAL data
-                  % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+                  % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                   [~, psalDataQc, ~, ~] = ...
                      get_param_data('PSAL', dataStruct, 'R');
 
@@ -2171,7 +2209,7 @@ if (testFlagList(57) == 1)
                            presDataForInt = presData(idNoDefToCheck);
 
                            % retrieve the PTS data
-                           % if PARAMETER_DATA_MODE = ‘A’ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
+                           % if PARAMETER_DATA_MODE = â€˜Aâ€™ then DOXY_ADJUSTED_QC should be defined from PSAL_QC, TEMP_QC and PRES_QC
                            [pres, ~, presFillValue, ...
                               temp, tempQc, tempFillValue, ...
                               psal, psalQc, psalFillValue] = ...
@@ -2223,10 +2261,79 @@ if (testFlagList(57) == 1)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TEST 60: PAR specific test
+%
+if (testFlagList(60) == 1)
+
+   if (ismember('DOWNWELLING_PAR', ncTrajParamNameList))
+
+      %%%%%%%%%%%%%%%%%%%%%%
+      % Specific test:
+      % set DOWNWELLING_PAR_QC = '2'
+
+      % retrieve PARAM data
+      [paramData, paramDataQc, paramDataFillValue, paramDataQcName] = ...
+         get_param_data('DOWNWELLING_PAR', dataStruct, 'R');
+
+      idNoDef = find(paramData ~= paramDataFillValue);
+      if (~isempty(idNoDef))
+
+         % initialize Qc flags (with QC = '2')
+         paramDataQc(idNoDef) = set_qc(paramDataQc(idNoDef), g_decArgo_qcStrProbablyGood);
+         dataStruct.(paramDataQcName) = paramDataQc;
+
+         testDoneList(60) = 1;
+         testFailedList(60) = 1;
+      end
+   end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TEST 61: IRRADIANCE specific test
+%
+if (testFlagList(61) == 1)
+
+   %%%%%%%%%%%%%%%%%%%%%%
+   % Specific test:
+   % set DOWN_IRRADIANCExxx_QC = '2'
+
+   % list of parameters concerned by this test
+   test61ParameterList = [ ...
+      {'DOWN_IRRADIANCE380'} ...
+      {'DOWN_IRRADIANCE412'} ...
+      {'DOWN_IRRADIANCE443'} ...
+      {'DOWN_IRRADIANCE490'} ...
+      {'DOWN_IRRADIANCE555'} ...
+      {'DOWN_IRRADIANCE665'} ...
+      {'DOWN_IRRADIANCE670'} ...
+      ];
+
+   for idP = 1:length(test61ParameterList)
+      paramName = test61ParameterList{idP};
+      if (ismember(paramName, ncTrajParamNameList))
+
+         % retrieve PARAM data
+         [paramData, paramDataQc, paramDataFillValue, paramDataQcName] = ...
+            get_param_data(paramName, dataStruct, 'R');
+         idNoDefParam = find(paramData ~= paramDataFillValue);
+         if (~isempty(idNoDefParam))
+
+            % initialize Qc flags (with QC = '2')
+            paramDataQc(idNoDefParam) = set_qc(paramDataQc(idNoDefParam), g_decArgo_qcStrProbablyGood);
+            dataStruct.(paramDataQcName) = paramDataQc;
+
+            testDoneList(61) = 1;
+            testFailedList(61) = 1;
+         end
+      end
+   end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TEST 62: BBP specific test
 %
 if (testFlagList(62) == 1)
-   
+
    if (ismember('BBP700', ncTrajParamNameList))
 
       % if PRES < 5 dbar and BBP700 < 0 the BBP700_QC = 4
@@ -2364,7 +2471,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/06/2024 - RNU - creation
@@ -2422,7 +2529,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   01/23/2024 - RNU - creation
@@ -2440,7 +2547,9 @@ global g_decArgo_qcStrBad;           % '4'
 presNameList = [ ...
    {'PRES'}; ...
    {'PRES2'}; ...
+   {'PRES_2'}; ...
    {'PRES3'}; ...
+   {'PRES_3'}; ...
    ];
 
 for idParamPres = 1:length(presNameList)
@@ -2526,7 +2635,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/06/2024 - RNU - creation
@@ -2609,7 +2718,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/06/2024 - RNU - creation
@@ -2642,7 +2751,7 @@ if (~isempty(idNoDefOutput) && ~isempty(idNoDefInput))
 
    if (length(ctdPres) > 1)
 
-      % % sort data 
+      % % sort data
       % [~, idSort] = sort(ctdPres);
       % ctdPres = ctdPres(idSort);
       % ctdParam = ctdParam(idSort);
@@ -2697,38 +2806,6 @@ if (~isempty(idNoDefOutput) && ~isempty(idNoDefInput))
 end
 
 return
-% ------------------------------------------------------------------------------
-% Get data from name in a {name}/{data} list.
-%
-% SYNTAX :
-%  [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-%
-% INPUT PARAMETERS :
-%   a_dataName : name of the data to retrieve
-%   a_dataList : {name}/{data} list
-%
-% OUTPUT PARAMETERS :
-%   o_dataValues : concerned data
-%
-% EXAMPLES :
-%
-% SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
-% ------------------------------------------------------------------------------
-% RELEASES :
-%   01/21/2015 - RNU - creation
-% ------------------------------------------------------------------------------
-function [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-
-% output parameters initialization
-o_dataValues = [];
-
-idVal = find(strcmp(a_dataName, a_dataList), 1);
-if (~isempty(idVal))
-   o_dataValues = a_dataList{idVal+1};
-end
-
-return
 
 % ------------------------------------------------------------------------------
 % Check if a location is in a given region (defined by a list of rectangles).
@@ -2747,7 +2824,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   01/21/2015 - RNU - creation
@@ -2787,7 +2864,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/10/2016 - RNU - V 1.0: creation
@@ -2809,6 +2886,22 @@ global g_JULD_STATUS_fill_value;
 % list of parameters that have an extra dimension (N_VALUESx)
 global g_decArgo_paramWithExtraDimList;
 
+% json meta-data
+global g_decArgo_jsonMetaData;
+
+
+% retrieve histoy institution from META.json file
+histoInstitutionMeta = '';
+if (~isempty(g_decArgo_jsonMetaData))
+   if (isfield(g_decArgo_jsonMetaData, 'DATA_CENTRE'))
+      if (~isempty(g_decArgo_jsonMetaData.DATA_CENTRE))
+         histoInstitutionMeta = strtrim(g_decArgo_jsonMetaData.DATA_CENTRE); % case of a RTQC after a decoding session
+      end
+   end
+end
+if (isempty(histoInstitutionMeta))
+   histoInstitutionMeta = 'IF';
+end
 
 % retrieve data from trajectory file
 wantedVars = [ ...
@@ -2841,19 +2934,27 @@ end
 ncTrajData = get_data_from_nc_file(a_trajFileName, wantedVars);
 
 % check that 2 additionnal N_HISTORY set of arrays are available
-ok = 1;
+need = 0;
 historyInstitution = get_data_from_name('HISTORY_INSTITUTION', ncTrajData);
-if (size(historyInstitution, 2) >= 2)
-   if (~isempty(strtrim(historyInstitution(:, end-1))) || ~isempty(strtrim(historyInstitution(:, end))))
-      ok = 0;
+if (isempty(historyInstitution))
+   need = 2;
+elseif (size(historyInstitution, 2) == 1)
+   if (~isempty(strtrim(historyInstitution(:, end))))
+      need = 2;
+   else
+      need = 1;
    end
-else
-   ok = 0;
+elseif (size(historyInstitution, 2) >= 2)
+   if (~isempty(strtrim(historyInstitution(:, end-1))) && ~isempty(strtrim(historyInstitution(:, end))))
+      need = 2;
+   elseif (~isempty(strtrim(historyInstitution(:, end-1))))
+      need = 1;
+   end
 end
 
 % modify the N_HISTORY dimension of the traj file
-if (~ok)
-   ok = update_n_history_dim_in_traj_file(a_trajFileName, 2);
+if (need ~= 0)
+   ok = update_n_history_dim_in_traj_file(a_trajFileName, need);
    if (ok == 0)
       fprintf('RTQC_ERROR: Unable to update the N_HISTORY dimension of the NetCDF file: %s\n', a_trajFileName);
       return
@@ -2874,139 +2975,147 @@ if (isempty(fCdf))
    return
 end
 
-% update <PARAM>_QC values
-for idParamQc = 1:2:length(a_dataQc)
-   paramQcName = a_dataQc{idParamQc};
-   paramName = paramQcName(1:end-3);
+try
 
-   if (var_is_present_dec_argo(fCdf, paramQcName))
+   % update <PARAM>_QC values
+   for idParamQc = 1:2:length(a_dataQc)
+      paramQcName = a_dataQc{idParamQc};
+      paramName = paramQcName(1:end-3);
 
-      dataQc = a_dataQc{idParamQc+1};
-      if (size(dataQc, 2) > nMeasurement)
-         dataQc = dataQc(:, 1:nMeasurement);
-      elseif (size(dataQc, 2) < nMeasurement)
-         nbColToAdd = nMeasurement - size(dataQc, 2);
-         dataQc = cat(2, dataQc, repmat(g_decArgo_qcStrDef, 1, nbColToAdd));
-      end
+      if (var_is_present_dec_argo(fCdf, paramQcName))
 
-      if (strncmp(paramName, 'JULD', length('JULD')))
-
-         paramInfo = get_netcdf_param_attributes('JULD');
-         paramJuld = get_data_from_name(paramName, ncTrajData);
-         paramJuldStatus = get_data_from_name([paramName '_STATUS'], ncTrajData);
-
-         idF = find((paramJuld == paramInfo.fillValue) & (paramJuldStatus == g_JULD_STATUS_fill_value));
-         dataQc(idF) = g_decArgo_qcStrDef;
-
-      elseif (strcmp(paramName, 'POSITION'))
-
-         paramLatInfo = get_netcdf_param_attributes('LATITUDE');
-         paramLonInfo = get_netcdf_param_attributes('LONGITUDE');
-         paramLat = get_data_from_name('LATITUDE', ncTrajData);
-         paramLon = get_data_from_name('LONGITUDE', ncTrajData);
-
-         idF = find((paramLat == paramLatInfo.fillValue) & (paramLon == paramLonInfo.fillValue));
-         dataQc(idF) = g_decArgo_qcStrDef;
-
-      else
-
-         paramName2 = paramName;
-         idF = strfind(paramName2, '_ADJUSTED');
-         if (~isempty(idF))
-            paramName2 = paramName2(1:idF-1);
+         dataQc = a_dataQc{idParamQc+1};
+         if (size(dataQc, 2) > nMeasurement)
+            dataQc = dataQc(:, 1:nMeasurement);
+         elseif (size(dataQc, 2) < nMeasurement)
+            nbColToAdd = nMeasurement - size(dataQc, 2);
+            dataQc = cat(2, dataQc, repmat(g_decArgo_qcStrDef, 1, nbColToAdd));
          end
-         paramInfo = get_netcdf_param_attributes(paramName2);
-         paramData = get_data_from_name(paramName, ncTrajData);
 
-         if (~ismember(paramName2, g_decArgo_paramWithExtraDimList))
-            idF = find(paramData == paramInfo.fillValue);
+         if (strncmp(paramName, 'JULD', length('JULD')))
+
+            paramInfo = get_netcdf_param_attributes('JULD');
+            paramJuld = get_data_from_name(paramName, ncTrajData);
+            paramJuldStatus = get_data_from_name([paramName '_STATUS'], ncTrajData);
+
+            idF = find((paramJuld == paramInfo.fillValue) & (paramJuldStatus == g_JULD_STATUS_fill_value));
             dataQc(idF) = g_decArgo_qcStrDef;
+
+         elseif (strcmp(paramName, 'POSITION'))
+
+            paramLatInfo = get_netcdf_param_attributes('LATITUDE');
+            paramLonInfo = get_netcdf_param_attributes('LONGITUDE');
+            paramLat = get_data_from_name('LATITUDE', ncTrajData);
+            paramLon = get_data_from_name('LONGITUDE', ncTrajData);
+
+            idF = find((paramLat == paramLatInfo.fillValue) & (paramLon == paramLonInfo.fillValue));
+            dataQc(idF) = g_decArgo_qcStrDef;
+
          else
-            idF = [];
-            for idLev = 1:size(paramData, 2)
-               if (~any(paramData(:, idLev) ~= paramInfo.fillValue))
-                  idF = [idF idLev];
-               end
+
+            paramName2 = paramName;
+            idF = strfind(paramName2, '_ADJUSTED');
+            if (~isempty(idF))
+               paramName2 = paramName2(1:idF-1);
             end
-            dataQc(idF) = g_decArgo_qcStrDef;
+            paramInfo = get_netcdf_param_attributes(paramName2);
+            paramData = get_data_from_name(paramName, ncTrajData);
+
+            if (~ismember(paramName2, g_decArgo_paramWithExtraDimList))
+               idF = find(paramData == paramInfo.fillValue);
+               dataQc(idF) = g_decArgo_qcStrDef;
+            else
+               idF = [];
+               for idLev = 1:size(paramData, 2)
+                  if (~any(paramData(:, idLev) ~= paramInfo.fillValue))
+                     idF = [idF idLev];
+                  end
+               end
+               dataQc(idF) = g_decArgo_qcStrDef;
+            end
+
          end
 
+         netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, paramQcName), dataQc');
       end
-
-      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, paramQcName), dataQc');
    end
-end
 
-% update miscellaneous information
+   % update miscellaneous information
 
-% date of the file update
-dateUpdate = datestr(now_utc, 'yyyymmddHHMMSS');
+   % date of the file update
+   dateUpdate = datestr(now_utc, 'yyyymmddHHMMSS');
 
-% retrieve the creation date of the file
-dateCreation = get_data_from_name('DATE_CREATION', ncTrajData)';
-if (isempty(deblank(dateCreation)))
-   dateCreation = dateUpdate;
-end
-
-% set the 'history' global attribute
-globalVarId = netcdf.getConstant('NC_GLOBAL');
-globalHistoryText = [datestr(datenum(dateCreation, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; '];
-globalHistoryText = [globalHistoryText ...
-   datestr(datenum(dateUpdate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COQC software)'];
-netcdf.putAtt(fCdf, globalVarId, 'history', globalHistoryText);
-
-% upate date
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), dateUpdate);
-
-% data state indicator
-dataStateIndicator = '2B';
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_STATE_INDICATOR'), 0, length(dataStateIndicator), dataStateIndicator);
-
-% update history information
-historyInstitution = get_data_from_name('HISTORY_INSTITUTION', ncTrajData);
-[~, nHistory] = size(historyInstitution);
-nHistory = nHistory - 1;
-histoInstitution = 'IF';
-histoStep = 'ARGQ';
-histoSoftware = 'COQC';
-histoSoftwareRelease = g_decArgo_addRtqcToTrajVersion;
-
-for idHisto = 1:2
-   if (idHisto == 1)
-      histoAction = 'QCP$';
-      histoQcTest = a_testDoneHex;
-   else
-      nHistory = nHistory + 1;
-      histoAction = 'QCF$';
-      histoQcTest = a_testFailedHex;
+   % retrieve the creation date of the file
+   dateCreation = get_data_from_name('DATE_CREATION', ncTrajData)';
+   if (isempty(deblank(dateCreation)))
+      dateCreation = dateUpdate;
    end
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoInstitution)]), histoInstitution');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_STEP'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoStep)]), histoStep');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoSoftware)]), histoSoftware');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoSoftwareRelease)]), histoSoftwareRelease');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(dateUpdate)]), dateUpdate');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(dateUpdate)]), dateUpdate');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_ACTION'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoAction)]), histoAction');
-   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_QCTEST'), ...
-      fliplr([nHistory-1 0]), ...
-      fliplr([1 length(histoQcTest)]), histoQcTest');
-end
 
-netcdf.close(fCdf);
+   % set the 'history' global attribute
+   globalVarId = netcdf.getConstant('NC_GLOBAL');
+   globalHistoryText = [datestr(datenum(dateCreation, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; '];
+   globalHistoryText = [globalHistoryText ...
+      datestr(datenum(dateUpdate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COQC software)'];
+   netcdf.putAtt(fCdf, globalVarId, 'history', globalHistoryText);
+
+   % upate date
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), dateUpdate);
+
+   % data state indicator
+   dataStateIndicator = '2B';
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_STATE_INDICATOR'), 0, length(dataStateIndicator), dataStateIndicator);
+
+   % update history information
+   historyInstitution = get_data_from_name('HISTORY_INSTITUTION', ncTrajData);
+   [~, nHistory] = size(historyInstitution); % original dimension
+   nHistory = nHistory + need; % if the dimension has been modified (but not already in size(historyInstitution))
+   nHistoryId = nHistory - 2;
+   histoInstitution = histoInstitutionMeta;
+   histoStep = 'ARGQ';
+   histoSoftware = 'COQC';
+   histoSoftwareRelease = g_decArgo_addRtqcToTrajVersion;
+
+   for idHisto = 1:2
+      if (idHisto == 1)
+         histoAction = 'QCP$';
+         histoQcTest = a_testDoneHex;
+      else
+         nHistoryId = nHistoryId + 1;
+         histoAction = 'QCF$';
+         histoQcTest = a_testFailedHex;
+      end
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoInstitution)]), histoInstitution');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_STEP'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoStep)]), histoStep');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoSoftware)]), histoSoftware');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoSoftwareRelease)]), histoSoftwareRelease');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(dateUpdate)]), dateUpdate');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(dateUpdate)]), dateUpdate');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_ACTION'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoAction)]), histoAction');
+      netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_QCTEST'), ...
+         fliplr([nHistoryId 0]), ...
+         fliplr([1 length(histoQcTest)]), histoQcTest');
+   end
+
+   netcdf.close(fCdf);
+
+catch MException
+   netcdf.close(fCdf);
+   rethrow(MException)
+end
 
 o_ok = 1;
 

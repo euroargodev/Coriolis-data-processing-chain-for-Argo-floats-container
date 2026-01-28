@@ -72,7 +72,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   01/08/2021 - RNU - creation
@@ -290,7 +290,7 @@ if (~isempty(a_inAirDate))
          measStructAux.paramData = [a_inAirPres(idMeas) a_inAirSalCor(idMeas)];
          measStructAux.sensorNumber = measStructAux.sensorNumber + 1000;
 
-         tabMeasStructInAir = [tabMeasStructInAir, measStructAux];
+         tabMeasStructInAir = [tabMeasStructInAir; measStructAux];
       end
    end
 end
@@ -781,7 +781,7 @@ if (a_deepCycle == 1)
             measStructAux.paramData = [a_nearSurfPres(idMeas) a_nearSurfSalCor(idMeas)];
             measStructAux.sensorNumber = measStructAux.sensorNumber + 1000;
 
-            trajNMeasStruct.tabMeas = [trajNMeasStruct.tabMeas, measStructAux];
+            trajNMeasStruct.tabMeas = [trajNMeasStruct.tabMeas; measStructAux];
          end
       end
    end

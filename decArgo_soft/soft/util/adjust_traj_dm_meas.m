@@ -12,7 +12,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/12/2024 - RNU - V 1.0: creation
@@ -41,7 +41,7 @@ DIR_OUTPUT_NC_TRAJ_FILES = 'C:\Users\jprannou\_DATA\OUT\TRAJ_DM_2024\';
 DIR_LOG_FILE = 'C:\Users\jprannou\_RNU\DecArgo_soft\work\log\';
 
 % directory to store the csv file
-DIR_CSV_FILE = 'C:\Users\jprannou\_RNU\DecArgo_soft\work\csv\run\';
+DIR_CSV_FILE = 'C:\Users\jprannou\_RNU\DecArgo_soft\work\csv\';
 
 % to generate DM TRAJ NetCDF files
 GENERATE_OUTPUT_TRAJ_FLAG = 1;
@@ -202,7 +202,7 @@ for idFloat = 1:nbFloats
 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    % report results in CSV file
-   
+
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    % global summary
    adjCoreCyNumListStr = '';
@@ -370,7 +370,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/12/2024 - RNU - creation
@@ -716,7 +716,7 @@ for cyNum = trajCyNumList
    % if(cyNum == 212)
    %    a=1
    % end
-   
+
    idForCy = find([trajDataAdjAll{:, 1}] == cyNum);
    mcList = unique([trajDataAdjAll{idForCy, 3}]);
 
@@ -977,10 +977,10 @@ for cyNum = trajCyNumList
       end
       if (~isempty(traj))
          trajDataAdjTab(cptTrajDataAdjItem) = traj;
-            cptTrajDataAdjItem = cptTrajDataAdjItem + 1;
-            if (cptTrajDataAdjItem > length(trajDataAdjTab))
-               trajDataAdjTab = cat(2, trajDataAdjTab, repmat(get_dm_traj_init_struct, 1, TRAJ_DATA_ITEM));
-            end
+         cptTrajDataAdjItem = cptTrajDataAdjItem + 1;
+         if (cptTrajDataAdjItem > length(trajDataAdjTab))
+            trajDataAdjTab = cat(2, trajDataAdjTab, repmat(get_dm_traj_init_struct, 1, TRAJ_DATA_ITEM));
+         end
       end
    end
 end
@@ -1014,7 +1014,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/18/2024 - RNU - creation
@@ -1091,7 +1091,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/12/2024 - RNU - creation
@@ -1326,7 +1326,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/12/2024 - RNU - creation
@@ -1752,7 +1752,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/20/2024 - RNU - creation
@@ -1843,7 +1843,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/20/2024 - RNU - creation
@@ -1925,325 +1925,330 @@ if (isempty(fCdf))
    return
 end
 
-trajParam = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETERS')); % TRAJECTORY_PARAMETERS(N_PARAM, STRING64)
+try
 
-cycleNumber = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER')); % CYCLE_NUMBER(N_MEASUREMENT)
-cycleNumberAdj = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_ADJUSTED')); % CYCLE_NUMBER_ADJUSTED(N_MEASUREMENT)
-trajParamDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETER_DATA_MODE')); % TRAJECTORY_PARAMETER_DATA_MODE(N_MEASUREMENT, N_PARAM)
-juldDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_DATA_MODE')); % JULD_DATA_MODE(N_MEASUREMENT)
+   trajParam = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETERS')); % TRAJECTORY_PARAMETERS(N_PARAM, STRING64)
 
-dataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE')); % DATA_MODE(N_ CYCLE)
-cycleNumberIndex = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX')); % CYCLE_NUMBER_INDEX(N_CYCLE)
-cycleNumberIndexAdj = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX_ADJUSTED')); % CYCLE_NUMBER_INDEX_ADJUSTED(N_CYCLE)
+   cycleNumber = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER')); % CYCLE_NUMBER(N_MEASUREMENT)
+   cycleNumberAdj = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_ADJUSTED')); % CYCLE_NUMBER_ADJUSTED(N_MEASUREMENT)
+   trajParamDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETER_DATA_MODE')); % TRAJECTORY_PARAMETER_DATA_MODE(N_MEASUREMENT, N_PARAM)
+   juldDataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'JULD_DATA_MODE')); % JULD_DATA_MODE(N_MEASUREMENT)
 
-presData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES'));
-presQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_QC'));
-presAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED'));
-presAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_QC'));
-presAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_ERROR'));
-tempData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP'));
-tempQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_QC'));
-tempAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED'));
-tempAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_QC'));
-tempAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_ERROR'));
-psalData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL'));
-psalQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_QC'));
-psalAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED'));
-psalAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_QC'));
-psalAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_ERROR'));
+   dataMode = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE')); % DATA_MODE(N_ CYCLE)
+   cycleNumberIndex = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX')); % CYCLE_NUMBER_INDEX(N_CYCLE)
+   cycleNumberIndexAdj = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX_ADJUSTED')); % CYCLE_NUMBER_INDEX_ADJUSTED(N_CYCLE)
 
-% netcdf.close(fCdf);
+   presData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES'));
+   presQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_QC'));
+   presAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED'));
+   presAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_QC'));
+   presAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_ERROR'));
+   tempData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP'));
+   tempQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_QC'));
+   tempAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED'));
+   tempAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_QC'));
+   tempAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_ERROR'));
+   psalData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL'));
+   psalQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_QC'));
+   psalAdjData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED'));
+   psalAdjQcData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_QC'));
+   psalAdjErrData = netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_ERROR'));
 
-% retrieve N_PARAM Id of each parameter
-[~, nParam] = size(trajParam);
-presParamId = nan;
-tempParamId = nan;
-psalParamId = nan;
-for idParam = 1:nParam
-   paramName = deblank(trajParam(:, idParam)');
-   if (~isempty(paramName))
-      if (strcmp(paramName, 'PRES'))
-         presParamId = idParam;
-      elseif (strcmp(paramName, 'TEMP'))
-         tempParamId = idParam;
-      elseif (strcmp(paramName, 'PSAL'))
-         psalParamId = idParam;
+   % retrieve N_PARAM Id of each parameter
+   [~, nParam] = size(trajParam);
+   presParamId = nan;
+   tempParamId = nan;
+   psalParamId = nan;
+   for idParam = 1:nParam
+      paramName = deblank(trajParam(:, idParam)');
+      if (~isempty(paramName))
+         if (strcmp(paramName, 'PRES'))
+            presParamId = idParam;
+         elseif (strcmp(paramName, 'TEMP'))
+            tempParamId = idParam;
+         elseif (strcmp(paramName, 'PSAL'))
+            psalParamId = idParam;
+         end
       end
    end
-end
 
-mcList = unique([a_trajDataAdj.measCode]);
-for measCode = mcList
-   idForMc = find([a_trajDataAdj.measCode] == measCode);
+   mcList = unique([a_trajDataAdj.measCode]);
+   for measCode = mcList
+      idForMc = find([a_trajDataAdj.measCode] == measCode);
 
-   for idT = idForMc
-      traj = a_trajDataAdj(idT);
+      for idT = idForMc
+         traj = a_trajDataAdj(idT);
 
-      % if (traj.cycleNumber == 44) && (traj.measCode == 590)
-      %    a=1
-      % end
+         % if (traj.cycleNumber == 44) && (traj.measCode == 590)
+         %    a=1
+         % end
 
-      switch (measCode)
+         switch (measCode)
 
-         case { ...
-               g_MC_DescProf, ...
-               g_MC_DescProfDeepestBin, ...
-               g_MC_DriftAtPark, ...
-               g_MC_AscProfDeepestBin, ...
-               g_MC_AscProf, ...
-               g_MC_LastAscPumpedCtd, ...
-               }
+            case { ...
+                  g_MC_DescProf, ...
+                  g_MC_DescProfDeepestBin, ...
+                  g_MC_DriftAtPark, ...
+                  g_MC_AscProfDeepestBin, ...
+                  g_MC_AscProf, ...
+                  g_MC_LastAscPumpedCtd, ...
+                  }
 
-            if (size(traj.data, 2) ~= 3)
-               fprintf('ANOMALY\n');
-               continue
-            end
-            if (any(presData(traj.dataId) ~= traj.data(:, 1)) || ...
-                  any(tempData(traj.dataId) ~= traj.data(:, 2)) || ...
-                  any(psalData(traj.dataId) ~= traj.data(:, 3)))
-               fprintf('ANOMALY\n');
-               continue
-            end
-
-            for idP = 1:3
-               if (idP == 1)
-                  paramInfo = presInfo;
-                  paramId = presParamId;
-                  paramQcData = presQcData;
-                  paramAdjData = presAdjData;
-                  paramAdjQcData = presAdjQcData;
-                  paramAdjErrData = presAdjErrData;
-               elseif (idP == 2)
-                  paramInfo = tempInfo;
-                  paramId = tempParamId;
-                  paramQcData = tempQcData;
-                  paramAdjData = tempAdjData;
-                  paramAdjQcData = tempAdjQcData;
-                  paramAdjErrData = tempAdjErrData;
-               elseif (idP == 3)
-                  paramInfo = psalInfo;
-                  paramId = psalParamId;
-                  paramQcData = psalQcData;
-                  paramAdjData = psalAdjData;
-                  paramAdjQcData = psalAdjQcData;
-                  paramAdjErrData = psalAdjErrData;
+               if (size(traj.data, 2) ~= 3)
+                  fprintf('ANOMALY\n');
+                  continue
+               end
+               if (any(presData(traj.dataId) ~= traj.data(:, 1)) || ...
+                     any(tempData(traj.dataId) ~= traj.data(:, 2)) || ...
+                     any(psalData(traj.dataId) ~= traj.data(:, 3)))
+                  fprintf('ANOMALY\n');
+                  continue
                end
 
-               dataParamQc = traj.dataQc(:, idP);
-               if (all(dataParamQc ~= g_decArgo_qcStrDef))
-                  paramQcData(traj.dataId) = dataParamQc;
+               for idP = 1:3
+                  if (idP == 1)
+                     paramInfo = presInfo;
+                     paramId = presParamId;
+                     paramQcData = presQcData;
+                     paramAdjData = presAdjData;
+                     paramAdjQcData = presAdjQcData;
+                     paramAdjErrData = presAdjErrData;
+                  elseif (idP == 2)
+                     paramInfo = tempInfo;
+                     paramId = tempParamId;
+                     paramQcData = tempQcData;
+                     paramAdjData = tempAdjData;
+                     paramAdjQcData = tempAdjQcData;
+                     paramAdjErrData = tempAdjErrData;
+                  elseif (idP == 3)
+                     paramInfo = psalInfo;
+                     paramId = psalParamId;
+                     paramQcData = psalQcData;
+                     paramAdjData = psalAdjData;
+                     paramAdjQcData = psalAdjQcData;
+                     paramAdjErrData = psalAdjErrData;
+                  end
+
+                  dataParamQc = traj.dataQc(:, idP);
+                  if (all(dataParamQc ~= g_decArgo_qcStrDef))
+                     paramQcData(traj.dataId) = dataParamQc;
+                  end
+
+                  dataParamAdj = traj.dataAdj(:, idP);
+                  idNan = find(isnan(dataParamAdj));
+                  dataParamAdj(idNan) = paramInfo.fillValue;
+                  paramAdjData(traj.dataId) = dataParamAdj;
+
+                  dataParamAdjQc = traj.dataAdjQc(:, idP);
+                  if (all(dataParamAdjQc ~= g_decArgo_qcStrDef))
+                     paramAdjQcData(traj.dataId) = dataParamAdjQc;
+                  end
+
+                  dataParamAdjErr = traj.dataAdjErr(:, idP);
+                  dataParamAdjErr(isnan(dataParamAdjErr)) = paramInfo.fillValue;
+                  paramAdjErrData(traj.dataId) = dataParamAdjErr;
+
+                  if (~isempty(idNan))
+                     paramQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
+                     paramAdjQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
+                     paramAdjErrData(traj.dataId(idNan)) = paramInfo.fillValue;
+                  end
+
+                  trajParamDataMode(paramId, traj.dataId) = 'D';
+
+                  if (idP == 1)
+                     presQcData = paramQcData;
+                     presAdjData = paramAdjData;
+                     presAdjQcData = paramAdjQcData;
+                     presAdjErrData = paramAdjErrData;
+                  elseif (idP == 2)
+                     tempQcData = paramQcData;
+                     tempAdjData = paramAdjData;
+                     tempAdjQcData = paramAdjQcData;
+                     tempAdjErrData = paramAdjErrData;
+                  elseif (idP == 3)
+                     psalQcData = paramQcData;
+                     psalAdjData = paramAdjData;
+                     psalAdjQcData = paramAdjQcData;
+                     psalAdjErrData = paramAdjErrData;
+                  end
                end
 
-               dataParamAdj = traj.dataAdj(:, idP);
-               idNan = find(isnan(dataParamAdj));
-               dataParamAdj(idNan) = paramInfo.fillValue;
-               paramAdjData(traj.dataId) = dataParamAdj;
+            case { ...
+                  g_MC_FST, ...
+                  g_MC_MaxPresInDescToPark, ...
+                  g_MC_MinPresInDriftAtPark, ...
+                  g_MC_MaxPresInDriftAtPark, ...
+                  g_MC_MaxPresInDescToProf, ...
+                  g_MC_MinPresInDriftAtProf, ...
+                  g_MC_MaxPresInDriftAtProf, ...
+                  g_MC_SpyInDescToPark, ...
+                  g_MC_SpyAtPark, ...
+                  g_MC_SpyInDescToProf, ...
+                  g_MC_SpyAtProf, ...
+                  g_MC_SpyInAscProf, ...
+                  g_MC_Grounded, ...
+                  }
 
-               dataParamAdjQc = traj.dataAdjQc(:, idP);
-               if (all(dataParamAdjQc ~= g_decArgo_qcStrDef))
-                  paramAdjQcData(traj.dataId) = dataParamAdjQc;
-               end
+               % MC managed by the ANDRO 2 TRAJ-DM tool
 
-               dataParamAdjErr = traj.dataAdjErr(:, idP);
-               dataParamAdjErr(isnan(dataParamAdjErr)) = paramInfo.fillValue;
-               paramAdjErrData(traj.dataId) = dataParamAdjErr;
+               % if (size(traj.data, 2) ~= 1)
+               %    fprintf('ANOMALY\n');
+               %    continue
+               % end
+               % if (any(presData(traj.dataId) ~= traj.data(:, 1)))
+               %    fprintf('ANOMALY\n');
+               %    continue
+               % end
+               %
+               % dataPresQc = traj.dataQc(:, 1);
+               % if (all(dataPresQc ~= g_decArgo_qcStrDef))
+               %    presQcData(traj.dataId) = dataPresQc;
+               % end
+               %
+               % dataPresAdj = traj.dataAdj(:, 1);
+               % idNan = find(isnan(dataPresAdj));
+               % dataPresAdj(idNan) = presInfo.fillValue;
+               % presAdjData(traj.dataId) = dataPresAdj;
+               %
+               % dataPresAdjQc = traj.dataAdjQc(:, 1);
+               % if (all(dataPresAdjQc ~= g_decArgo_qcStrDef))
+               %    presAdjQcData(traj.dataId) = dataPresAdjQc;
+               % end
+               %
+               % dataPresAdjErr = traj.dataAdjErr(:, 1);
+               % dataPresAdjErr(isnan(dataPresAdjErr)) = presInfo.fillValue;
+               % presAdjErrData(traj.dataId) = dataPresAdjErr;
+               %
+               % if (~isempty(idNan))
+               %    presQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
+               %    presAdjQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
+               %    presAdjErrData(traj.dataId(idNan)) = presInfo.fillValue;
+               % end
+               %
+               % trajParamDataMode(presParamId, traj.dataId) = 'D';
 
-               if (~isempty(idNan))
-                  paramQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
-                  paramAdjQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
-                  paramAdjErrData(traj.dataId(idNan)) = paramInfo.fillValue;
-               end
+            case g_MC_RPP
 
-               trajParamDataMode(paramId, traj.dataId) = 'D';
+            case g_MC_InWaterSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
 
-               if (idP == 1)
-                  presQcData = paramQcData;
-                  presAdjData = paramAdjData;
-                  presAdjQcData = paramAdjQcData;
-                  presAdjErrData = paramAdjErrData;
-               elseif (idP == 2)
-                  tempQcData = paramQcData;
-                  tempAdjData = paramAdjData;
-                  tempAdjQcData = paramAdjQcData;
-                  tempAdjErrData = paramAdjErrData;
-               elseif (idP == 3)
-                  psalQcData = paramQcData;
-                  psalAdjData = paramAdjData;
-                  psalAdjQcData = paramAdjQcData;
-                  psalAdjErrData = paramAdjErrData;
-               end
-            end
+            case g_MC_InAirSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
 
-         case { ...
-               g_MC_FST, ...
-               g_MC_MaxPresInDescToPark, ...
-               g_MC_MinPresInDriftAtPark, ...
-               g_MC_MaxPresInDriftAtPark, ...
-               g_MC_MaxPresInDescToProf, ...
-               g_MC_MinPresInDriftAtProf, ...
-               g_MC_MaxPresInDriftAtProf, ...
-               g_MC_SpyInDescToPark, ...
-               g_MC_SpyAtPark, ...
-               g_MC_SpyInDescToProf, ...
-               g_MC_SpyAtProf, ...
-               g_MC_SpyInAscProf, ...
-               g_MC_Grounded, ...
-               }
-
-            % MC managed by the ANDRO 2 TRAJ-DM tool
-
-            % if (size(traj.data, 2) ~= 1)
-            %    fprintf('ANOMALY\n');
-            %    continue
-            % end
-            % if (any(presData(traj.dataId) ~= traj.data(:, 1)))
-            %    fprintf('ANOMALY\n');
-            %    continue
-            % end
-            % 
-            % dataPresQc = traj.dataQc(:, 1);
-            % if (all(dataPresQc ~= g_decArgo_qcStrDef))
-            %    presQcData(traj.dataId) = dataPresQc;
-            % end
-            % 
-            % dataPresAdj = traj.dataAdj(:, 1);
-            % idNan = find(isnan(dataPresAdj));
-            % dataPresAdj(idNan) = presInfo.fillValue;
-            % presAdjData(traj.dataId) = dataPresAdj;
-            % 
-            % dataPresAdjQc = traj.dataAdjQc(:, 1);
-            % if (all(dataPresAdjQc ~= g_decArgo_qcStrDef))
-            %    presAdjQcData(traj.dataId) = dataPresAdjQc;
-            % end
-            % 
-            % dataPresAdjErr = traj.dataAdjErr(:, 1);
-            % dataPresAdjErr(isnan(dataPresAdjErr)) = presInfo.fillValue;
-            % presAdjErrData(traj.dataId) = dataPresAdjErr;
-            % 
-            % if (~isempty(idNan))
-            %    presQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
-            %    presAdjQcData(traj.dataId(idNan)) = g_decArgo_qcStrBad;
-            %    presAdjErrData(traj.dataId(idNan)) = presInfo.fillValue;
-            % end
-            % 
-            % trajParamDataMode(presParamId, traj.dataId) = 'D';
-
-         case g_MC_RPP
-
-         case g_MC_InWaterSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
-
-         case g_MC_InAirSeriesOfMeasPartOfSurfaceSequenceRelativeToTST
-
-         otherwise
-            fprintf('Not implement yet for MC = %d\n', measCode);
+            otherwise
+               fprintf('Not implement yet for MC = %d\n', measCode);
+         end
       end
    end
-end
 
-% update CYCLE_ADJUSTED, CYCLE_NUMBER_INDEX_ADJUSTED and DATA_MODE
-for idCy = 1:length(dataMode)
-   profCyNum = cycleNumberIndex(idCy);
-   idF = find(a_traj2ProfCyNum(:, 2) == profCyNum);
-   if (~isempty(idF))
-      trajCyNum = unique(a_traj2ProfCyNum(idF, 2));
-      idForCy = find(cycleNumber == profCyNum);
-      if (any(juldDataMode(idForCy) == 'D') || any(any(trajParamDataMode(:, idForCy) == 'D')))
-         cycleNumberIndexAdj(idCy) = trajCyNum;
-         cycleNumberAdj(idForCy) = trajCyNum;
-         dataMode(idCy) = 'D';
+   % update CYCLE_ADJUSTED, CYCLE_NUMBER_INDEX_ADJUSTED and DATA_MODE
+   for idCy = 1:length(dataMode)
+      profCyNum = cycleNumberIndex(idCy);
+      idF = find(a_traj2ProfCyNum(:, 2) == profCyNum);
+      if (~isempty(idF))
+         trajCyNum = unique(a_traj2ProfCyNum(idF, 2));
+         idForCy = find(cycleNumber == profCyNum);
+         if (any(juldDataMode(idForCy) == 'D') || any(any(trajParamDataMode(:, idForCy) == 'D')))
+            cycleNumberIndexAdj(idCy) = trajCyNum;
+            cycleNumberAdj(idForCy) = trajCyNum;
+            dataMode(idCy) = 'D';
+         end
       end
    end
+
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_ADJUSTED'), cycleNumberAdj);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETER_DATA_MODE'), trajParamDataMode);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE'), dataMode);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX_ADJUSTED'), cycleNumberIndexAdj);
+
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_QC'), presQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED'), presAdjData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_QC'), presAdjQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_ERROR'), presAdjErrData);
+
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_QC'), tempQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED'), tempAdjData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_QC'), tempAdjQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_ERROR'), tempAdjErrData);
+
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_QC'), psalQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED'), psalAdjData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_QC'), psalAdjQcData);
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_ERROR'), psalAdjErrData);
+
+   % update HISTORY information
+
+   % add history information that concerns the current program
+   historyInstitution = 'IF';
+   historyStep = 'ARSQ';
+   historySoftware = 'COAM';
+   historySoftwareRelease = g_decArgo_adjustTrajDmMeasVersion;
+   historyDate = datestr(now_utc, 'yyyymmddHHMMSS');
+
+   [~, nHistory] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_HISTORY'));
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
+      fliplr([nHistory-1 0]), fliplr([1 length(historyInstitution)]), historyInstitution');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_STEP'), ...
+      fliplr([nHistory-1 0]), fliplr([1 length(historyStep)]), historyStep');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
+      fliplr([nHistory-1 0]), fliplr([1 length(historySoftware)]), historySoftware');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
+      fliplr([nHistory-1 0]), fliplr([1 length(historySoftwareRelease)]), historySoftwareRelease');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
+      fliplr([nHistory-1 0]), fliplr([1 length(historyDate)]), historyDate');
+
+   % update the update date
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), historyDate);
+
+   % retrieve the creation date of the updated file
+   dateCreation = deblank(netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_CREATION'))');
+
+   % set the 'history' global attribute
+   globalVarId = netcdf.getConstant('NC_GLOBAL');
+   globalHistoryText = [datestr(datenum(dateCreation, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; '];
+   globalHistoryText = [globalHistoryText ...
+      datestr(datenum(historyDate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COAM software (V ' g_decArgo_adjustTrajDmMeasVersion '))'];
+   netcdf.reDef(fCdf);
+   netcdf.putAtt(fCdf, globalVarId, 'history', globalHistoryText);
+   netcdf.endDef(fCdf);
+
+   % update SCIENTIFIC_CALIB_* information
+
+   [~, nCalibParam] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_CALIB_PARAM'));
+
+   scientificCalibParam = 'PRES';
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
+      fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
+   scientificCalibParam = 'TEMP';
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
+      fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
+   scientificCalibParam = 'PSAL';
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
+      fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
+
+   scientificCalibComment = ['PRES ' g_decArgo_scientificCalibComment];
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
+      fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
+   scientificCalibComment = ['TEMP ' g_decArgo_scientificCalibComment];
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
+      fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
+   scientificCalibComment = ['PSAL ' g_decArgo_scientificCalibComment];
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
+      fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
+
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
+      fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
+      fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
+   netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
+      fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
+
+
+   netcdf.close(fCdf);
+
+catch MException
+   netcdf.close(fCdf);
+   rethrow(MException)
 end
-
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_ADJUSTED'), cycleNumberAdj);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TRAJECTORY_PARAMETER_DATA_MODE'), trajParamDataMode);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATA_MODE'), dataMode);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'CYCLE_NUMBER_INDEX_ADJUSTED'), cycleNumberIndexAdj);
-
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_QC'), presQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED'), presAdjData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_QC'), presAdjQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PRES_ADJUSTED_ERROR'), presAdjErrData);
-
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_QC'), tempQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED'), tempAdjData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_QC'), tempAdjQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'TEMP_ADJUSTED_ERROR'), tempAdjErrData);
-
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_QC'), psalQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED'), psalAdjData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_QC'), psalAdjQcData);
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'PSAL_ADJUSTED_ERROR'), psalAdjErrData);
-
-% update HISTORY information
-
-% add history information that concerns the current program
-historyInstitution = 'IF';
-historyStep = 'ARSQ';
-historySoftware = 'COAM';
-historySoftwareRelease = g_decArgo_adjustTrajDmMeasVersion;
-historyDate = datestr(now_utc, 'yyyymmddHHMMSS');
-
-[~, nHistory] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_HISTORY'));
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_INSTITUTION'), ...
-   fliplr([nHistory-1 0]), fliplr([1 length(historyInstitution)]), historyInstitution');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_STEP'), ...
-   fliplr([nHistory-1 0]), fliplr([1 length(historyStep)]), historyStep');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE'), ...
-   fliplr([nHistory-1 0]), fliplr([1 length(historySoftware)]), historySoftware');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_SOFTWARE_RELEASE'), ...
-   fliplr([nHistory-1 0]), fliplr([1 length(historySoftwareRelease)]), historySoftwareRelease');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'HISTORY_DATE'), ...
-   fliplr([nHistory-1 0]), fliplr([1 length(historyDate)]), historyDate');
-
-% update the update date
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_UPDATE'), historyDate);
-
-% retrieve the creation date of the updated file
-dateCreation = deblank(netcdf.getVar(fCdf, netcdf.inqVarID(fCdf, 'DATE_CREATION'))');
-
-% set the 'history' global attribute
-globalVarId = netcdf.getConstant('NC_GLOBAL');
-globalHistoryText = [datestr(datenum(dateCreation, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' creation; '];
-globalHistoryText = [globalHistoryText ...
-   datestr(datenum(historyDate, 'yyyymmddHHMMSS'), 'yyyy-mm-ddTHH:MM:SSZ') ' last update (coriolis COAM software (V ' g_decArgo_adjustTrajDmMeasVersion '))'];
-netcdf.reDef(fCdf);
-netcdf.putAtt(fCdf, globalVarId, 'history', globalHistoryText);
-netcdf.endDef(fCdf);
-
-% update SCIENTIFIC_CALIB_* information
-
-[~, nCalibParam] = netcdf.inqDim(fCdf, netcdf.inqDimID(fCdf, 'N_CALIB_PARAM'));
-
-scientificCalibParam = 'PRES';
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
-   fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
-scientificCalibParam = 'TEMP';
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
-   fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
-scientificCalibParam = 'PSAL';
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_PARAMETER'), ...
-   fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(scientificCalibParam)]), scientificCalibParam');
-
-scientificCalibComment = ['PRES ' g_decArgo_scientificCalibComment];
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
-   fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
-scientificCalibComment = ['TEMP ' g_decArgo_scientificCalibComment];
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
-   fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
-scientificCalibComment = ['PSAL ' g_decArgo_scientificCalibComment];
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_COMMENT'), ...
-   fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(scientificCalibComment)]), scientificCalibComment');
-
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
-   fliplr([nCalibParam-1 presParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
-   fliplr([nCalibParam-1 tempParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
-netcdf.putVar(fCdf, netcdf.inqVarID(fCdf, 'SCIENTIFIC_CALIB_DATE'), ...
-   fliplr([nCalibParam-1 psalParamId-1 0]), fliplr([1 1 length(historyDate)]), historyDate');
-
-
-netcdf.close(fCdf);
 
 o_ok = 1;
 
@@ -2265,7 +2270,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/25/2024 - RNU - creation
@@ -2313,7 +2318,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/16/2024 - RNU - creation
@@ -2347,39 +2352,6 @@ end
 return
 
 % ------------------------------------------------------------------------------
-% Get data from name in a {var_name}/{var_data} list.
-%
-% SYNTAX :
-%  [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-%
-% INPUT PARAMETERS :
-%   a_dataName : name of the data to retrieve
-%   a_dataList : {var_name}/{var_data} list
-%
-% OUTPUT PARAMETERS :
-%   o_dataValues : concerned data
-%
-% EXAMPLES :
-%
-% SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
-% ------------------------------------------------------------------------------
-% RELEASES :
-%   06/12/2018 - RNU - creation
-% ------------------------------------------------------------------------------
-function [o_dataValues] = get_data_from_name(a_dataName, a_dataList)
-
-% output parameters initialization
-o_dataValues = [];
-
-idVal = find(strcmp(a_dataName, a_dataList(1:2:end)) == 1, 1);
-if (~isempty(idVal))
-   o_dataValues = a_dataList{2*idVal};
-end
-
-return
-
-% ------------------------------------------------------------------------------
 % Get the basic structure to store DM profile data.
 %
 % SYNTAX :
@@ -2392,8 +2364,8 @@ return
 %
 % EXAMPLES :
 %
-% SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% SEE ALSO :
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/18/2024 - RNU - creation
@@ -2437,8 +2409,8 @@ return
 %
 % EXAMPLES :
 %
-% SEE ALSO : 
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% SEE ALSO :
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/18/2024 - RNU - creation
@@ -2469,7 +2441,7 @@ return
 % Update the N_HISTORY and N_CALIB_PARAM dimensions in a trajectory file.
 %
 % SYNTAX :
- % [o_ok] = update_dim_in_traj_file(a_trajFileName)
+% [o_ok] = update_dim_in_traj_file(a_trajFileName)
 %
 % INPUT PARAMETERS :
 %   a_trajFileName : trajectory file path name
@@ -2480,7 +2452,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/20/2024 - RNU - creation
@@ -2571,32 +2543,48 @@ if (isempty(fCdfIn))
    fprintf('RTQC_ERROR: Unable to open NetCDF input file: %s\n', tmpTrajFileName);
    return
 end
-fCdfOut = netcdf.open(trajFileName, 'NC_WRITE');
-if (isempty(fCdfOut))
-   fprintf('RTQC_ERROR: Unable to open NetCDF input file: %s\n', trajFileName);
-   return
-end
 
-for idVar = 1:length(outputFileSchema.Variables)
-   varName = outputFileSchema.Variables(idVar).Name;
-   varData = netcdf.getVar(fCdfIn, netcdf.inqVarID(fCdfIn, varName));
-   if (~isempty(varData))
-      dimList = {outputFileSchema.Variables(idVar).Dimensions.Name};
-      if (length(dimList) == 1)
-         netcdf.putVar(fCdfOut, netcdf.inqVarID(fCdfOut, varName), 0, length(varData), varData);
-      else
-         startList = zeros(1, length(dimList));
-         countList = size(varData);
-         if (length(countList) < length(dimList))
-            countList = [countList ones(1, length(dimList)-length(countList))];
-         end
-         netcdf.putVar(fCdfOut, netcdf.inqVarID(fCdfOut, varName), startList, countList, varData);
-      end
+try
+
+   fCdfOut = netcdf.open(trajFileName, 'NC_WRITE');
+   if (isempty(fCdfOut))
+      fprintf('RTQC_ERROR: Unable to open NetCDF input file: %s\n', trajFileName);
+      return
    end
-end
 
-netcdf.close(fCdfOut);
-netcdf.close(fCdfIn);
+   try
+
+      for idVar = 1:length(outputFileSchema.Variables)
+         varName = outputFileSchema.Variables(idVar).Name;
+         varData = netcdf.getVar(fCdfIn, netcdf.inqVarID(fCdfIn, varName));
+         if (~isempty(varData))
+            dimList = {outputFileSchema.Variables(idVar).Dimensions.Name};
+            if (length(dimList) == 1)
+               netcdf.putVar(fCdfOut, netcdf.inqVarID(fCdfOut, varName), 0, length(varData), varData);
+            else
+               startList = zeros(1, length(dimList));
+               countList = size(varData);
+               if (length(countList) < length(dimList))
+                  countList = [countList ones(1, length(dimList)-length(countList))];
+               end
+               netcdf.putVar(fCdfOut, netcdf.inqVarID(fCdfOut, varName), startList, countList, varData);
+            end
+         end
+      end
+
+      netcdf.close(fCdfOut);
+
+   catch MException
+      netcdf.close(fCdfOut);
+      rethrow(MException)
+   end
+
+   netcdf.close(fCdfIn);
+
+catch MException
+   netcdf.close(fCdfIn);
+   rethrow(MException)
+end
 
 % update input file
 move_file(trajFileName, a_trajFileName);
@@ -2626,7 +2614,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/09/2014 - RNU - creation
@@ -2642,7 +2630,7 @@ idDim = find(strcmp(a_dimName, {a_inputSchema.Dimensions.Name}) == 1, 1);
 
 if (~isempty(idDim))
    a_inputSchema.Dimensions(idDim).Length = a_dimVal;
-   
+
    % update the dimensions of the variables
    for idVar = 1:length(a_inputSchema.Variables)
       var = a_inputSchema.Variables(idVar);

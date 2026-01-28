@@ -1,19 +1,19 @@
 % ------------------------------------------------------------------------------
-% Selection (déplacement) des répertoires de fichiers traités associés à une
+% Selection (dÃ©placement) des rÃ©pertoires de fichiers traitÃ©s associÃ©s Ã  une
 % liste de flotteurs.
 %
 % SYNTAX :
 %   select_data_files ou select_data_files(6900189,7900118)
 %
 % INPUT PARAMETERS :
-%   varargin : éventuellement la liste des numéros de flotteurs à traiter
+%   varargin : Ã©ventuellement la liste des numÃ©ros de flotteurs Ã  traiter
 %
 % OUTPUT PARAMETERS :
 %
 % EXAMPLES :
 %
 % SEE ALSO : get_config
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   26/05/2008 - RNU - creation
@@ -32,16 +32,16 @@ inputDirName = 'C:\Users\jprannou\_DATA\CTS5_DESC_PROF\';
 fprintf('Floats from list: %s\n', floatListFileName);
 floatList = load(floatListFileName);
 
-% création du répertoire de destination
+% crÃ©ation du rÃ©pertoire de destination
 outputDirName = [inputDirName '/selected/'];
 if (exist(outputDirName, 'dir') == 7)
-   fprintf('Le répertoire %s existe déjà, arrêt du programme\n', outputDirName);
+   fprintf('Le rÃ©pertoire %s existe dÃ©jÃ , arrÃªt du programme\n', outputDirName);
    return
 else
    mkdir(outputDirName);
 end
 
-% déplacement des répertoires de fichiers TXT associés aux flotteurs de la liste
+% dÃ©placement des rÃ©pertoires de fichiers TXT associÃ©s aux flotteurs de la liste
 nbFloats = length(floatList);
 for idFloat = 1:nbFloats
    floatNum = floatList(idFloat);
@@ -51,7 +51,7 @@ for idFloat = 1:nbFloats
    fprintf('%03d/%03d %d', idFloat, nbFloats, floatNum);
 
    if ~(exist(txtDirName, 'dir') == 7)
-      fprintf(': répertoire absent: %s\n', txtDirName);
+      fprintf(': rÃ©pertoire absent: %s\n', txtDirName);
    else
       move_file(txtDirName, outputDirName);
       fprintf('\n');

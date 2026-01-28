@@ -23,7 +23,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/28/2018 - RNU - creation
@@ -49,6 +49,8 @@ if (ismember(a_decoderId, g_decArgo_decoderIdListNkeIridiumRbr))
          compute_rt_adjusted_psal_for_rbr_float( ...
          o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle);
    else
+      % for decId 228 RBR data are in (PRES3, TEMP3, PSAL3, TEMP_CNDC)
+      % profiles
       [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
          compute_rt_adjusted_psal_for_rbr_float_228( ...
          o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle);
@@ -57,13 +59,13 @@ end
 
 if (ismember(a_decoderId, g_decArgo_decoderIdListNkeIridiumDeep))
    % perform PSAL RT adjustment of Deep floats
-   if (a_decoderId ~= 228)
+   [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
+      compute_rt_adjusted_psal_for_deep_float( ...
+      o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle);
+   if (ismember(a_decoderId, [228, 229]))
+      % for decIds 228 and 229 SBE61 data are in (PRES2, TEMP2, PSAL2) profiles
       [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
-         compute_rt_adjusted_psal_for_deep_float( ...
-         o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle);
-   else
-      [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
-         compute_rt_adjusted_psal_for_deep_float_228( ...
+         compute_rt_adjusted_psal_for_deep_float_228_229( ...
          o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle);
    end
 end
@@ -108,7 +110,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/01/2022 - RNU - creation
@@ -501,7 +503,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/14/2024 - RNU - creation
@@ -579,7 +581,7 @@ else
 end
 
 % for N_CALIB = 2
-equation2 = 'PSAL3_ADJUSTED = gsw_SP_from_C(Cadj, TEMP3_ADJUSTED + TEMP3_longanomaly, PRES3_ADJUSTED), TEMP3_longanomaly = ctcoeff * (TEMP_CNDC - TEMP3), Cadj is from re-computed salinity due to pressure effects.';
+equation2 = 'PSAL_3_ADJUSTED = gsw_SP_from_C(Cadj, TEMP_3_ADJUSTED + TEMP_3_longanomaly, PRES3_ADJUSTED), TEMP_3_longanomaly = ctcoeff * (TEMP_CNDC - TEMP_3), Cadj is from re-computed salinity due to pressure effects.';
 coefficient2 = 'ctcoeff = 0.014';
 comment2 = 'Long timescale thermal inertia correction applied to RBR salinity.';
 
@@ -590,13 +592,13 @@ comment2 = 'Long timescale thermal inertia correction applied to RBR salinity.';
 
 for idProf = 1:length(o_tabProfiles)
    profile = o_tabProfiles(idProf);
-   if (any(strcmp({profile.paramList.name}, 'PSAL3')) && ...
+   if (any(strcmp({profile.paramList.name}, 'PSAL_3')) && ...
          any(strcmp({profile.paramList.name}, 'TEMP_CNDC')))
       
       % retrieve PTS and PT_ADJUSTED values
-      idPres = find(strcmp({profile.paramList.name}, 'PRES3'));
-      idTemp = find(strcmp({profile.paramList.name}, 'TEMP3'));
-      idPsal = find(strcmp({profile.paramList.name}, 'PSAL3'));
+      idPres = find(strcmp({profile.paramList.name}, 'PRES_3'));
+      idTemp = find(strcmp({profile.paramList.name}, 'TEMP_3'));
+      idPsal = find(strcmp({profile.paramList.name}, 'PSAL_3'));
       idTempCndc = find(strcmp({profile.paramList.name}, 'TEMP_CNDC'));
       
       presValues = profile.data(:, idPres);
@@ -717,7 +719,7 @@ for idProf = 1:length(o_tabProfiles)
          profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
          g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
             g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
-            {'PSAL3'} {equation1} {coefficient1} {comment1} {''}];
+            {'PSAL_3'} {equation1} {coefficient1} {comment1} {''}];
          g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
 
          % for N_CALIB = 2
@@ -725,7 +727,7 @@ for idProf = 1:length(o_tabProfiles)
             profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
             g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
                g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
-               {'PSAL3'} {equation2} {coefficient2} {comment2} {''}];
+               {'PSAL_3'} {equation2} {coefficient2} {comment2} {''}];
             g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
          end
 
@@ -746,13 +748,13 @@ if (g_decArgo_generateNcTraj32 ~= 0)
 
          tabMeas = o_tabTrajNMeas(idNMeas).tabMeas(idMeas);
          if (~isempty(tabMeas.paramList) && ...
-               any(strcmp({tabMeas.paramList.name}, 'PSAL3')) && ...
+               any(strcmp({tabMeas.paramList.name}, 'PSAL_3')) && ...
                any(strcmp({tabMeas.paramList.name}, 'TEMP_CNDC')))
 
             % retrieve PTS and PT_ADJUSTED values
-            idPres = find(strcmp({tabMeas.paramList.name}, 'PRES3'));
-            idTemp = find(strcmp({tabMeas.paramList.name}, 'TEMP3'));
-            idPsal = find(strcmp({tabMeas.paramList.name}, 'PSAL3'));
+            idPres = find(strcmp({tabMeas.paramList.name}, 'PRES_3'));
+            idTemp = find(strcmp({tabMeas.paramList.name}, 'TEMP_3'));
+            idPsal = find(strcmp({tabMeas.paramList.name}, 'PSAL_3'));
             idTempCndc = find(strcmp({tabMeas.paramList.name}, 'TEMP_CNDC'));
 
             presValues = tabMeas.paramData(:, idPres);
@@ -845,10 +847,10 @@ if (g_decArgo_generateNcTraj32 ~= 0)
 
                % store trajectory adjustment information for NetCDF file
                store_traj_adj_info(4, o_tabTrajNMeas(idNMeas).outputCycleNumber, ...
-                  'PSAL3', equation1, coefficient1, comment1, '');
+                  'PSAL_3', equation1, coefficient1, comment1, '');
 
                store_traj_adj_info(5, o_tabTrajNMeas(idNMeas).outputCycleNumber, ...
-                  'PSAL3', equation2, coefficient2, comment2, '');
+                  'PSAL_3', equation2, coefficient2, comment2, '');
             end
          end
       end
@@ -893,7 +895,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   04/01/2022 - RNU - creation
@@ -978,7 +980,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/04/2021 - RNU - creation
@@ -1006,12 +1008,12 @@ global g_decArgo_generateNcTraj32;
 global g_decArgo_jsonMetaData;
 
 
-% from "Argo Quality Control Manual for CTD and Trajectory Data, Version 3.4, 02
-% February 2021"
+% from "Argo Quality Control Manual for CTD and Trajectory Data, Version 3.9, 20
+% February 2025"
 DELTA = 3.25e-6;
 CPCOR_SBE = -9.57e-8;
-% CPCOR_NEW_SBE_61 = -12.5e-8; % for Deep Apex and Deep SOLO => unused
-CPCOR_NEW_SBE_41CP = -13.5e-8; % for Deep Arvor and Deep Ninja
+% CPCOR_NEW_SBE_61 = –11.7e–8; % for Deep Apex and Deep SOLO => unused
+CPCOR_NEW_SBE_41CP = -11.7e-8; % for Deep Arvor and Deep Ninja
 
 % a specific CPCOR value may exist
 if (isfield(g_decArgo_jsonMetaData, 'CP_COR') && ~isempty(g_decArgo_jsonMetaData.CP_COR))
@@ -1262,7 +1264,7 @@ return
 %
 % SYNTAX :
 %  [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
-%    compute_rt_adjusted_psal_for_deep_float_228(a_tabProfiles, a_tabTrajNMeas, a_tabTrajNCycle)
+%    compute_rt_adjusted_psal_for_deep_float_228_229(a_tabProfiles, a_tabTrajNMeas, a_tabTrajNCycle)
 %
 % INPUT PARAMETERS :
 %   a_tabProfiles   : input profile structures
@@ -1277,13 +1279,13 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   05/14/2024 - RNU - creation
 % ------------------------------------------------------------------------------
 function [o_tabProfiles, o_tabTrajNMeas, o_tabTrajNCycle] = ...
-   compute_rt_adjusted_psal_for_deep_float_228(a_tabProfiles, a_tabTrajNMeas, a_tabTrajNCycle)
+   compute_rt_adjusted_psal_for_deep_float_228_229(a_tabProfiles, a_tabTrajNMeas, a_tabTrajNCycle)
 
 % output parameters initialization
 o_tabProfiles = a_tabProfiles;
@@ -1325,7 +1327,7 @@ paramTemp = get_netcdf_param_attributes('TEMP');
 paramPsal = get_netcdf_param_attributes('PSAL');
 
 % basic adjustment information for NetCDF files
-equation = 'new conductivity = original conductivity * (1 + delta*TEMP2 + CPcor_SBE*PRES2) / (1 + delta*TEMP2_ADJUSTED + CPcor_new*PRES2_ADJUSTED)';
+equation = 'new conductivity = original conductivity * (1 + delta*TEMP_2 + CPcor_SBE*PRES_2) / (1 + delta*TEMP_2_ADJUSTED + CPcor_new*PRES_2_ADJUSTED)';
 coefficient = sprintf('CPcor_new = %g, CPcor_SBE = %g, delta = %g', cpCorNewSbe61, CPCOR_SBE, DELTA);
 comment = 'New conductivity computed by using a different CPcor value from that provided by Sea-Bird.';
 
@@ -1335,12 +1337,12 @@ comment = 'New conductivity computed by using a different CPcor value from that 
 
 for idProf = 1:length(o_tabProfiles)
    profile = o_tabProfiles(idProf);
-   if (any(strcmp({profile.paramList.name}, 'PSAL2')))
+   if (any(strcmp({profile.paramList.name}, 'PSAL_2')))
       
       % retrieve PTS and PT_ADJUSTED values
-      idPres = find(strcmp({profile.paramList.name}, 'PRES2'));
-      idTemp = find(strcmp({profile.paramList.name}, 'TEMP2'));
-      idPsal = find(strcmp({profile.paramList.name}, 'PSAL2'));
+      idPres = find(strcmp({profile.paramList.name}, 'PRES_2'));
+      idTemp = find(strcmp({profile.paramList.name}, 'TEMP_2'));
+      idPsal = find(strcmp({profile.paramList.name}, 'PSAL_2'));
       
       presValues = profile.data(:, idPres);
       tempValues = profile.data(:, idTemp);
@@ -1425,7 +1427,7 @@ for idProf = 1:length(o_tabProfiles)
          
          g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
             g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
-            {'PSAL2'} {equation} {coefficient} {comment} {''}];
+            {'PSAL_2'} {equation} {coefficient} {comment} {''}];
          g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
       end
    end
@@ -1443,12 +1445,12 @@ if (g_decArgo_generateNcTraj32 ~= 0)
          
          tabMeas = o_tabTrajNMeas(idNMeas).tabMeas(idMeas);
          if (~isempty(tabMeas.paramList) && ...
-               any(strcmp({tabMeas.paramList.name}, 'PSAL2')))
+               any(strcmp({tabMeas.paramList.name}, 'PSAL_2')))
             
             % retrieve PTS and PT_ADJUSTED values
-            idPres = find(strcmp({tabMeas.paramList.name}, 'PRES2'));
-            idTemp = find(strcmp({tabMeas.paramList.name}, 'TEMP2'));
-            idPsal = find(strcmp({tabMeas.paramList.name}, 'PSAL2'));
+            idPres = find(strcmp({tabMeas.paramList.name}, 'PRES_2'));
+            idTemp = find(strcmp({tabMeas.paramList.name}, 'TEMP_2'));
+            idPsal = find(strcmp({tabMeas.paramList.name}, 'PSAL_2'));
             
             presValues = tabMeas.paramData(:, idPres);
             tempValues = tabMeas.paramData(:, idTemp);
@@ -1530,7 +1532,7 @@ if (g_decArgo_generateNcTraj32 ~= 0)
                
                % store trajectory adjustment information for NetCDF file
                store_traj_adj_info(2, o_tabTrajNMeas(idNMeas).outputCycleNumber, ...
-                  'PSAL2', equation, coefficient, comment, '');
+                  'PSAL_2', equation, coefficient, comment, '');
             end
          end
       end
@@ -1576,7 +1578,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   02/02/2021 - RNU - creation
@@ -1634,7 +1636,7 @@ for idPar = 1:length(g_decArgo_rtOffsetInfo.param)
    tabComment = g_decArgo_rtOffsetInfo.comment{idPar};
    tabDate = g_decArgo_rtOffsetInfo.date{idPar};
    tabDateApply = g_decArgo_rtOffsetInfo.dateApply{idPar};
-   
+
    for idAdj = 1:length(tabDate)
       
       slopeRtAdj = tabSlope(idAdj);
@@ -1668,29 +1670,31 @@ for idPar = 1:length(g_decArgo_rtOffsetInfo.param)
                
                [idParam, firstCol, lastCol] = get_param_data_index(profile, paramName);
                
-               % create array for adjusted data
-               if (isempty(profile.dataAdj))
-                  profile.paramDataMode = repmat(' ', 1, length(profile.paramList));
-                  paramFillValue = get_prof_param_fill_value(profile);
-                  profile.dataAdj = repmat(double(paramFillValue), size(profile.data, 1), 1);
-                  
-                  paramData = profile.data(:, firstCol:lastCol);
+               % choose input data to be adjusted
+               if (~isempty(a_tabProfiles(idProf).paramDataMode) && ...
+                     (a_tabProfiles(idProf).paramDataMode(idParam) == 'A'))
+                  % input data is already adjusted, use it as the base data
+                  % for the adjustment
+                  paramData = a_tabProfiles(idProf).dataAdj(:, firstCol:lastCol);
                else
-                  if (profile.paramDataMode(idParam) == ' ')
-                     paramData = profile.data(:, firstCol:lastCol);
-                  else
-                     paramData = profile.dataAdj(:, firstCol:lastCol);
-                  end
+                  paramData = a_tabProfiles(idProf).data(:, firstCol:lastCol);
                end
-               if (isempty(profile.dataAdjQc))
-                  profile.dataAdjQc = ones(size(profile.dataAdj, 1), length(profile.paramList))*g_decArgo_qcDef;
-               end
-               
+
                % adjust data
                paramDataAdj = paramData;
                idNoDef = find(paramDataAdj ~= profile.paramList(idParam).fillValue);
                paramDataAdj(idNoDef) = paramDataAdj(idNoDef)*slopeRtAdj + offsetRtAdj;
                
+               % create array for adjusted data
+               if (isempty(profile.dataAdj))
+                  profile.paramDataMode = repmat(' ', 1, length(profile.paramList));
+                  paramFillValue = get_prof_param_fill_value(profile);
+                  profile.dataAdj = repmat(double(paramFillValue), size(profile.data, 1), 1);
+               end
+               if (isempty(profile.dataAdjQc))
+                  profile.dataAdjQc = ones(size(profile.dataAdj, 1), length(profile.paramList))*g_decArgo_qcDef;
+               end
+
                % store adjusted data
                profile.paramDataMode(idParam) = 'A';
                profile.dataAdj(:, firstCol:lastCol) = paramDataAdj;
@@ -1733,29 +1737,30 @@ for idPar = 1:length(g_decArgo_rtOffsetInfo.param)
                      
                      [idParam, firstCol, lastCol] = get_param_data_index(tabMeas, paramName);
                      
+                     % choose input data to be adjusted
+                     if (~isempty(a_tabTrajNMeas(idTraj).tabMeas(idMeas).paramDataMode) && ...
+                           (a_tabTrajNMeas(idTraj).tabMeas(idMeas).paramDataMode(idParam) == 'A'))
+                        % input data is already adjusted, use it as the base data
+                        % for the adjustment
+                        paramData = a_tabTrajNMeas(idTraj).tabMeas(idMeas).paramDataAdj(:, firstCol:lastCol);
+                     else
+                        paramData = a_tabTrajNMeas(idTraj).tabMeas(idMeas).paramData(:, firstCol:lastCol);
+                     end
+
+                     % adjust data
+                     paramDataAdj = paramData;
+                     idNoDef = find(paramDataAdj ~= tabMeas.paramList(idParam).fillValue);
+                     paramDataAdj(idNoDef) = paramDataAdj(idNoDef)*slopeRtAdj + offsetRtAdj;
+
                      % create array for adjusted data
                      if (isempty(tabMeas.paramDataAdj))
                         tabMeas.paramDataMode = repmat(' ', 1, length(tabMeas.paramList));
                         paramFillValue = get_prof_param_fill_value(tabMeas);
                         tabMeas.paramDataAdj = repmat(double(paramFillValue), size(tabMeas.paramData, 1), 1);
-                        
-                        % parameter data
-                        paramData = tabMeas.paramData(:, firstCol:lastCol);
-                     else
-                        if (tabMeas.paramDataMode(idParam) == ' ')
-                           paramData = tabMeas.paramData(:, firstCol:lastCol);
-                        else
-                           paramData = tabMeas.paramDataAdj(:, firstCol:lastCol);
-                        end
                      end
                      if (isempty(tabMeas.paramDataAdjQc))
                         tabMeas.paramDataAdjQc = ones(size(tabMeas.paramDataAdj, 1), length(tabMeas.paramList))*g_decArgo_qcDef;
                      end
-                     
-                     % adjust data
-                     paramDataAdj = paramData;
-                     idNoDef = find(paramDataAdj ~= tabMeas.paramList(idParam).fillValue);
-                     paramDataAdj(idNoDef) = paramDataAdj(idNoDef)*slopeRtAdj + offsetRtAdj;
                      
                      % store adjusted data
                      if (~isempty(idNoDef))
@@ -1821,7 +1826,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/03/2019 - RNU - creation
@@ -1886,26 +1891,26 @@ if (~isempty(g_decArgo_rtOffsetInfo))
          doOffset = g_decArgo_rtOffsetInfo.value{idF};
          doDate = g_decArgo_rtOffsetInfo.date{idF};
          doDateApply = g_decArgo_rtOffsetInfo.dateApply{idF};
-         if (isnan(doDateApply))
-            doDateApply = doDate;
+         if (any(isnan(doDateApply)))
+            doDateApply(isnan(doDateApply)) = doDate(isnan(doDateApply));
          end
          % not mandatory fields
          if (isfield(g_decArgo_rtOffsetInfo, 'adjError'))
 
             doAdjError = g_decArgo_rtOffsetInfo.adjError{idF};
-            doAdjErrorStr = g_decArgo_rtOffsetInfo.adjErrorStr{idF}{:};
-            doAdjErrMethod = g_decArgo_rtOffsetInfo.adjErrorMethod{idF}{:};
+            doAdjErrorStr = g_decArgo_rtOffsetInfo.adjErrorStr{idF};
+            doAdjErrMethod = g_decArgo_rtOffsetInfo.adjErrorMethod{idF};
          end
          % new fields (possibly not filled for old adjustments)
-         doDrift = 0;
+         doDrift = zeros(size(doSlope));
          if (isfield(g_decArgo_rtOffsetInfo, 'drift'))
             doDrift = g_decArgo_rtOffsetInfo.drift{idF};
          end
-         doInclineT = 0;
+         doInclineT = zeros(size(doSlope));
          if (isfield(g_decArgo_rtOffsetInfo, 'inclineT'))
             doInclineT = g_decArgo_rtOffsetInfo.inclineT{idF};
          end
-         doCorPres = nan;
+         doCorPres = nan(size(doSlope));
          if (isfield(g_decArgo_rtOffsetInfo, 'doCorPres'))
             doCorPres = g_decArgo_rtOffsetInfo.doCorPres{idF};
          end
@@ -1918,169 +1923,172 @@ if (~isempty(doSlope))
    
    profDateList = [o_tabProfiles.date];
    profDateList(profDateList == g_decArgo_dateDef) = [];
-   
-   if (any((profDateList + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply))
-      
-      % some cases need the PPOX_ERROR to increase with time
-      startDateToIncreasePpoxErrorWithTime = '';
-      if (~isnan(doAdjError))
-         switch (doAdjErrMethod)
-            case {'1_1', '2_1'}
-               startDateToIncreasePpoxErrorWithTime = '';
-            case {'1_2', '2_2', '3_2', '3_2_2'}
-               startDateToIncreasePpoxErrorWithTime = doDate;
-         end
-      end
-      
-      % basic adjustment information for NetCDF files
-      % default equation (same as for case '1_1', '1_2', '2_1', '2_2' or '3_2')
-      equation = ['PPOX=f(DOXY), ' ...
-         'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
-         'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
-      coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, launch_date_juld = %s', ...
-         doOffset, doSlope, doDrift, doInclineT, datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
-      if (~isnan(doAdjError))
-         switch (doAdjErrMethod)
-            case {'1_1', '1_2', '2_1', '2_2', '3_2'}
-               equation = ['PPOX_DOXY=f(DOXY), ' ...
-                  'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
-                  'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
-               coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, launch_date_juld = %s', ...
-                  doOffset, doSlope, doDrift, doInclineT, datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
-            case {'3_2_2'}
-               equation = ['DOXY_COR_PRES=DOXY*(1+DO_COR_PRES*PRES/1000), '...
-                  'PPOX_DOXY=f(DOXY_COR_PRES), ' ...
-                  'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
-                  'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
-               coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, DO_COR_PRES = %.4f, launch_date_juld = %s', ...
-                  doOffset, doSlope, doDrift, doInclineT, doCorPres, datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
-         end
-      end
-      comment = '';
-      if (~isnan(doAdjError))
-         switch (doAdjErrMethod)
-            case '1_1'
-               comment = sprintf(['DOXY_ADJUSTED is computed from an adjustment ' ...
-                  'of in water PSAT or PPOX float data at surface by comparison to woaPSAT ' ...
-                  'climatology or WOA PPOX in using woaPSAT and floatTEMP and PSAL at 1 atm, ' ...
-                  'DOXY_ADJUSTED_ERROR is computed from a PPOX_ERROR of %s mbar'], doAdjErrorStr);
-            case '1_2'
-               comment = sprintf(['DOXY_ADJUSTED is computed from an adjustment ' ...
-                  'of in water PSAT or PPOX float data at surface by comparison to woaPSAT ' ...
-                  'climatology or woaPPOX{woaPSAT,floatTEMP,floatPSAL} at 1 atm, ' ...
-                  'DOXY_ADJUSTED_ERROR is computed from a PPOX_ERROR of %s mbar +1mb/year'], doAdjErrorStr);
-            case '2_1'
-               comment = sprintf(['DOXY_ADJUSTED is estimated from an adjustment ' ...
-                  'of in air PPOX float data by comparison to NCEP reanalysis, ' ...
-                  'DOXY_ADJUSTED_ERROR is recomputed from a PPOX_ERROR = %s mbar'], doAdjErrorStr);
-            case '2_2'
-               comment = sprintf(['DOXY_ADJUSTED is estimated from an adjustment ' ...
-                  'of in air PPOX float data by comparison to NCEP reanalysis, ' ...
-                  'DOXY_ADJUSTED_ERROR is recomputed from a PPOX_ERROR = %s mbar ' ...
-                  'with an increase of 1mbar/year'], doAdjErrorStr);
-            case '3_2'
-               comment = sprintf(['DOXY_ADJUSTED is estimated from the last valid cycle ' ...
-                  'with DM adjustment, DOXY_ADJUSTED_ERROR is recomputed from a ' ...
-                  'PPOX_ERROR = %s mbar with an increase of 1mbar/year'], doAdjErrorStr);
-            case '3_2_2'
-               comment = sprintf(['DOXY_ADJUSTED is estimated from the last valid cycle ' ...
-                  'with DM adjustment that includes a refined pressure correction coefficient, ', ...
-                  'DOXY_ADJUSTED_ERROR is recomputed from a ' ...
-                  'PPOX_ERROR = %s mbar with an increase of 1mbar/year'], doAdjErrorStr);
-            otherwise
-               fprintf('ERROR: Float #%d: input CALIB_RT_ADJ_ERROR_METHOD (''%s'') of DOXY adjustment is not implemented yet - SCIENTIFIC_CALIB_COMMENT of DOXY parameter not set\n', ...
-                  g_decArgo_floatNum, ...
-                  doAdjErrMethod);
-         end
-      end
-      date = datestr(doDate+g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS');
-      
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % adjust DOXY profile data
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      
-      for idProf = 1:length(o_tabProfiles)
-         profile = o_tabProfiles(idProf);
-         if (any(strcmp({profile.paramList.name}, 'DOXY')) && ...
-               (profile.date ~= g_decArgo_dateDef) && ...
-               ((profile.date + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply))
-            
-            % retrieve associated profiles (needed for 'real' BGC floats since
-            % PTS are in separate profiles)
-            idProfs = find(([o_tabProfiles.outputCycleNumber] == profile.outputCycleNumber) & ...
-               ([o_tabProfiles.direction] == profile.direction) & ...
-               ([o_tabProfiles.sensorNumber] < 100)); % AUX profiles should not be considered
-            
-            % adjust DOXY for this profile
-            [ok, profile] = adjust_doxy_profile( ...
-               profile, o_tabProfiles(setdiff(idProfs, idProf)), ...
-               doCorPres, doSlope, doOffset, doDrift, doInclineT, ...
-               doAdjError, startDateToIncreasePpoxErrorWithTime, a_launchDate, a_decoderId);
-            if (ok)
-               profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
-               o_tabProfiles(idProf) = profile;
-               
-               % store profile adjustment information for NetCDF file
-               if (profile.direction == 'A')
-                  direction = 2;
-               else
-                  direction = 1;
-               end
-               
-               g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
-                  g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
-                  {'DOXY'} {equation} {coefficient} {comment} {date}];
-               g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
+
+   for idAdj = 1:length(doSlope)
+
+      if (any((profDateList + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply(idAdj)))
+
+         % some cases need the PPOX_ERROR to increase with time
+         startDateToIncreasePpoxErrorWithTime = '';
+         if (~isnan(doAdjError(idAdj)))
+            switch (doAdjErrMethod{idAdj})
+               case {'1_1', '2_1'}
+                  startDateToIncreasePpoxErrorWithTime = '';
+               case {'1_2', '2_2', '3_2', '3_2_2'}
+                  startDateToIncreasePpoxErrorWithTime = doDate(idAdj);
             end
          end
-      end
-      
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % adjust DOXY trajectory data
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      
-      if (g_decArgo_generateNcTraj32 ~= 0)
-         
-         idProfToAdjust = find(([o_tabProfiles.date] ~= g_decArgo_dateDef) & ...
-            (([o_tabProfiles.date] + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply));
-         firstCyToAdjust = min([o_tabProfiles(idProfToAdjust).outputCycleNumber]);
-         
-         idTrajToAdjust = find([o_tabTrajNMeas.outputCycleNumber] >= firstCyToAdjust);
-         adjFlag = 0;
-         for idTraj = idTrajToAdjust
-            for idMeas = 1:length(o_tabTrajNMeas(idTraj).tabMeas)
-               tabMeas = o_tabTrajNMeas(idTraj).tabMeas(idMeas);
-               if (~isempty(tabMeas.paramList) && ...
-                     any(strcmp({tabMeas.paramList.name}, 'DOXY')))
 
-                  % adjust DOXY for this measurement
-                  [ok, tabMeas] = adjust_doxy_traj_meas(tabMeas, ...
-                     doCorPres, doSlope, doOffset, doDrift, doInclineT, ...
-                     doAdjError, startDateToIncreasePpoxErrorWithTime, a_launchDate, ...
-                     o_tabTrajNMeas(idTraj), idMeas, a_decoderId);
-                  if (ok)
-                     o_tabTrajNMeas(idTraj).tabMeas(idMeas) = tabMeas;
-                     adjFlag = 1;
-                     
-                     % store trajectory adjustment information for NetCDF file
-                     store_traj_adj_info(3, o_tabTrajNMeas(idTraj).outputCycleNumber, ...
-                        'DOXY', equation, coefficient, comment, date);
+         % basic adjustment information for NetCDF files
+         % default equation (same as for case '1_1', '1_2', '2_1', '2_2' or '3_2')
+         equation = ['PPOX=f(DOXY), ' ...
+            'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
+            'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
+         coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, launch_date_juld = %s', ...
+            doOffset(idAdj), doSlope(idAdj), doDrift(idAdj), doInclineT(idAdj), datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
+         if (~isnan(doAdjError(idAdj)))
+            switch (doAdjErrMethod{idAdj})
+               case {'1_1', '1_2', '2_1', '2_2', '3_2'}
+                  equation = ['PPOX_DOXY=f(DOXY), ' ...
+                     'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
+                     'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
+                  coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, launch_date_juld = %s', ...
+                     doOffset(idAdj), doSlope(idAdj), doDrift(idAdj), doInclineT(idAdj), datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
+               case {'3_2_2'}
+                  equation = ['DOXY_COR_PRES=DOXY*(1+DO_COR_PRES*PRES/1000), '...
+                     'PPOX_DOXY=f(DOXY_COR_PRES), ' ...
+                     'PPOX_DOXY_ADJUSTED=(SLOPE*(1+DRIFT/100*(profile_date_juld-launch_date_juld)/365)+INCLINE_T*TEMP)*(PPOX_DOXY+OFFSET), ' ...
+                     'DOXY_ADJUSTED=f(PPOX_DOXY_ADJUSTED)'];
+                  coefficient = sprintf('OFFSET = %.2f, SLOPE = %.4f, DRIFT = %.3f, INCLINE_T = %.6f, DO_COR_PRES = %.4f, launch_date_juld = %s', ...
+                     doOffset(idAdj), doSlope(idAdj), doDrift(idAdj), doInclineT(idAdj), doCorPres(idAdj), datestr(a_launchDate + g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS'));
+            end
+         end
+         comment = '';
+         if (~isnan(doAdjError(idAdj)))
+            switch (doAdjErrMethod{idAdj})
+               case '1_1'
+                  comment = sprintf(['DOXY_ADJUSTED is computed from an adjustment ' ...
+                     'of in water PSAT or PPOX float data at surface by comparison to woaPSAT ' ...
+                     'climatology or WOA PPOX in using woaPSAT and floatTEMP and PSAL at 1 atm, ' ...
+                     'DOXY_ADJUSTED_ERROR is computed from a PPOX_ERROR of %s mbar'], doAdjErrorStr{idAdj});
+               case '1_2'
+                  comment = sprintf(['DOXY_ADJUSTED is computed from an adjustment ' ...
+                     'of in water PSAT or PPOX float data at surface by comparison to woaPSAT ' ...
+                     'climatology or woaPPOX{woaPSAT,floatTEMP,floatPSAL} at 1 atm, ' ...
+                     'DOXY_ADJUSTED_ERROR is computed from a PPOX_ERROR of %s mbar +1mb/year'], doAdjErrorStr{idAdj});
+               case '2_1'
+                  comment = sprintf(['DOXY_ADJUSTED is estimated from an adjustment ' ...
+                     'of in air PPOX float data by comparison to NCEP reanalysis, ' ...
+                     'DOXY_ADJUSTED_ERROR is recomputed from a PPOX_ERROR = %s mbar'], doAdjErrorStr{idAdj});
+               case '2_2'
+                  comment = sprintf(['DOXY_ADJUSTED is estimated from an adjustment ' ...
+                     'of in air PPOX float data by comparison to NCEP reanalysis, ' ...
+                     'DOXY_ADJUSTED_ERROR is recomputed from a PPOX_ERROR = %s mbar ' ...
+                     'with an increase of 1mbar/year'], doAdjErrorStr{idAdj});
+               case '3_2'
+                  comment = sprintf(['DOXY_ADJUSTED is estimated from the last valid cycle ' ...
+                     'with DM adjustment, DOXY_ADJUSTED_ERROR is recomputed from a ' ...
+                     'PPOX_ERROR = %s mbar with an increase of 1mbar/year'], doAdjErrorStr{idAdj});
+               case '3_2_2'
+                  comment = sprintf(['DOXY_ADJUSTED is estimated from the last valid cycle ' ...
+                     'with DM adjustment that includes a refined pressure correction coefficient, ', ...
+                     'DOXY_ADJUSTED_ERROR is recomputed from a ' ...
+                     'PPOX_ERROR = %s mbar with an increase of 1mbar/year'], doAdjErrorStr{idAdj});
+               otherwise
+                  fprintf('ERROR: Float #%d: input CALIB_RT_ADJ_ERROR_METHOD (''%s'') of DOXY adjustment is not implemented yet - SCIENTIFIC_CALIB_COMMENT of DOXY parameter not set\n', ...
+                     g_decArgo_floatNum, ...
+                     doAdjErrMethod{idAdj});
+            end
+         end
+         date = datestr(doDate(idAdj)+g_decArgo_janFirst1950InMatlab, 'yyyymmddHHMMSS');
+
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         % adjust DOXY profile data
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+         for idProf = 1:length(o_tabProfiles)
+            profile = o_tabProfiles(idProf);
+            if (any(strcmp({profile.paramList.name}, 'DOXY')) && ...
+                  (profile.date ~= g_decArgo_dateDef) && ...
+                  ((profile.date + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply(idAdj)))
+
+               % retrieve associated profiles (needed for 'real' BGC floats since
+               % PTS are in separate profiles)
+               idProfs = find(([o_tabProfiles.outputCycleNumber] == profile.outputCycleNumber) & ...
+                  ([o_tabProfiles.direction] == profile.direction) & ...
+                  ([o_tabProfiles.sensorNumber] < 100)); % AUX profiles should not be considered
+
+               % adjust DOXY for this profile
+               [ok, profile] = adjust_doxy_profile( ...
+                  profile, o_tabProfiles(setdiff(idProfs, idProf)), ...
+                  doCorPres(idAdj), doSlope(idAdj), doOffset(idAdj), doDrift(idAdj), doInclineT(idAdj), ...
+                  doAdjError(idAdj), startDateToIncreasePpoxErrorWithTime, a_launchDate, a_decoderId);
+               if (ok)
+                  profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
+                  o_tabProfiles(idProf) = profile;
+
+                  % store profile adjustment information for NetCDF file
+                  if (profile.direction == 'A')
+                     direction = 2;
+                  else
+                     direction = 1;
+                  end
+
+                  g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
+                     g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
+                     {'DOXY'} {equation} {coefficient} {comment} {date}];
+                  g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
+               end
+            end
+         end
+
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         % adjust DOXY trajectory data
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+         if (g_decArgo_generateNcTraj32 ~= 0)
+
+            idProfToAdjust = find(([o_tabProfiles.date] ~= g_decArgo_dateDef) & ...
+               (([o_tabProfiles.date] + g_decArgo_nbHourForProfDateCompInRtOffsetAdj/24) >= doDateApply(idAdj)));
+            firstCyToAdjust = min([o_tabProfiles(idProfToAdjust).outputCycleNumber]);
+
+            idTrajToAdjust = find([o_tabTrajNMeas.outputCycleNumber] >= firstCyToAdjust);
+            adjFlag = 0;
+            for idTraj = idTrajToAdjust
+               for idMeas = 1:length(o_tabTrajNMeas(idTraj).tabMeas)
+                  tabMeas = o_tabTrajNMeas(idTraj).tabMeas(idMeas);
+                  if (~isempty(tabMeas.paramList) && ...
+                        any(strcmp({tabMeas.paramList.name}, 'DOXY')))
+
+                     % adjust DOXY for this measurement
+                     [ok, tabMeas] = adjust_doxy_traj_meas(tabMeas, ...
+                        doCorPres(idAdj), doSlope(idAdj), doOffset(idAdj), doDrift(idAdj), doInclineT(idAdj), ...
+                        doAdjError(idAdj), startDateToIncreasePpoxErrorWithTime, a_launchDate, ...
+                        o_tabTrajNMeas(idTraj), idMeas, a_decoderId);
+                     if (ok)
+                        o_tabTrajNMeas(idTraj).tabMeas(idMeas) = tabMeas;
+                        adjFlag = 1;
+
+                        % store trajectory adjustment information for NetCDF file
+                        store_traj_adj_info(3, o_tabTrajNMeas(idTraj).outputCycleNumber, ...
+                           'DOXY', equation, coefficient, comment, date);
+                     end
                   end
                end
             end
-         end
-         
-         % update DATA_MODE
-         if (adjFlag)
-            if (any([o_tabTrajNCycle.dataMode] ~= 'A'))
-               idCyList = find([o_tabTrajNCycle.dataMode] ~= 'A');
-               for idCy = 1:length(idCyList)
-                  idStruct = find([o_tabTrajNMeas.outputCycleNumber] == o_tabTrajNCycle(idCyList(idCy)).outputCycleNumber); % nominal case: only one
-                  for idS = 1:length(idStruct)
-                     tabTrajNMeas = o_tabTrajNMeas(idStruct(idS));
-                     if (any([tabTrajNMeas.tabMeas.paramDataMode] == 'A'))
-                        o_tabTrajNCycle(idCyList(idCy)).dataMode = 'A';
-                        break
+
+            % update DATA_MODE
+            if (adjFlag)
+               if (any([o_tabTrajNCycle.dataMode] ~= 'A'))
+                  idCyList = find([o_tabTrajNCycle.dataMode] ~= 'A');
+                  for idCy = 1:length(idCyList)
+                     idStruct = find([o_tabTrajNMeas.outputCycleNumber] == o_tabTrajNCycle(idCyList(idCy)).outputCycleNumber); % nominal case: only one
+                     for idS = 1:length(idStruct)
+                        tabTrajNMeas = o_tabTrajNMeas(idStruct(idS));
+                        if (any([tabTrajNMeas.tabMeas.paramDataMode] == 'A'))
+                           o_tabTrajNCycle(idCyList(idCy)).dataMode = 'A';
+                           break
+                        end
                      end
                   end
                end
@@ -2122,7 +2130,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/01/2021 - RNU - creation
@@ -2147,10 +2155,11 @@ global g_MC_RPP;
 
 % lists of managed decoders
 global g_decArgo_decoderIdListBgcFloatAll;
+global g_decArgo_decoderIdListNkePfv2Iridium;
 
 
 if (isempty(a_tabMeas.ptsForDoxy))
-   if (ismember(a_decoderId, g_decArgo_decoderIdListBgcFloatAll))
+   if (ismember(a_decoderId, [g_decArgo_decoderIdListBgcFloatAll g_decArgo_decoderIdListNkePfv2Iridium]))
       %       if (~ismember(a_tabMeas.measCode, [g_MC_RPP]))
       %          fprintf('INFO: Float #%d Cycle #%d MC %d: Empty ptsForDoxy => not adjusted\n', ...
       %             g_decArgo_floatNum, ...
@@ -2263,7 +2272,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   07/03/2019 - RNU - creation
@@ -2286,6 +2295,7 @@ global g_decArgo_qcNoQc;
 
 % lists of managed decoders
 global g_decArgo_decoderIdListBgcFloatAll;
+global g_decArgo_decoderIdListNkePfv2Iridium;
 global g_decArgo_decoderIdListNavis;
 
 
@@ -2309,7 +2319,8 @@ idDoxy = find(strcmp({a_profile.paramList.name}, 'DOXY'));
 % NAVIS float is a PTSO floats, however as we compute DOXY for NS measurements
 % where T and S are not avaialable (we duplicate the shallowest PTS bin on NS
 % pressures), it should be process as a 'real' BGC float
-if ~(ismember(a_decoderId, g_decArgo_decoderIdListBgcFloatAll) || (a_decoderId == g_decArgo_decoderIdListNavis))
+if ~((a_decoderId == g_decArgo_decoderIdListNavis) || ...
+   ismember(a_decoderId, g_decArgo_decoderIdListBgcFloatAll))
    
    % case of a PTSO float
    presValues = a_profile.data(:, idPres);
@@ -2447,7 +2458,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/28/2018 - RNU - creation
@@ -2456,6 +2467,9 @@ function [o_tabProfiles] = compute_rt_adjusted_chla(a_tabProfiles)
 
 % output parameters initialization
 o_tabProfiles = a_tabProfiles;
+
+% current float WMO number
+global g_decArgo_floatNum;
 
 % QC flag values (numerical)
 global g_decArgo_qcDef;
@@ -2469,7 +2483,8 @@ global g_decArgo_paramProfAdjId;
 % look for CHLA profiles
 noChlaProfile = 1;
 for idProf = 1:length(o_tabProfiles)
-   if (any(strcmp({o_tabProfiles(idProf).paramList.name}, 'CHLA')))
+   if (any(strcmp({o_tabProfiles(idProf).paramList.name}, 'CHLA')) && ...
+         (o_tabProfiles(idProf).sensorNumber < 100)) % to avoid adjusting CHLA of TRIDENTE sensor
       noChlaProfile = 0;
       break
    end
@@ -2478,62 +2493,138 @@ if (noChlaProfile)
    return
 end
 
-% basic adjustment information for NetCDF files
-equation = 'CHLA_ADJUSTED = CHLA/2';
-comment = 'Real-time CHLA adjustment following recommendations of Roesler et al., 2017 (https://doi.org/10.1002/lom3.10185)';
+if (1)
 
-% adjust CHLA data
-for idProf = 1:length(o_tabProfiles)
-   profile = o_tabProfiles(idProf);
-   if (any(strcmp({profile.paramList.name}, 'CHLA')))
-      
-      paramChla = get_netcdf_param_attributes('CHLA');
-      
-      % retrieve CHLA data
-      idChla = find(strcmp({profile.paramList.name}, 'CHLA'));
-      if (~isempty(profile.paramNumberWithSubLevels))
-         idSub = find(profile.paramNumberWithSubLevels < idChla);
-         if (~isempty(idSub))
-            idChla = idChla + sum(profile.paramNumberOfSubLevels(idSub)) - length(idSub);
+   % basic adjustment information for NetCDF files
+   equation = 'CHLA_ADJUSTED = CHLA/2';
+   comment = 'Real-time CHLA adjustment following recommendations of Roesler et al., 2017 (https://doi.org/10.1002/lom3.10185)';
+
+   % adjust CHLA data
+   for idProf = 1:length(o_tabProfiles)
+      profile = o_tabProfiles(idProf);
+      if (any(strcmp({profile.paramList.name}, 'CHLA')))
+
+         paramChla = get_netcdf_param_attributes('CHLA');
+
+         % retrieve CHLA data
+         idChla = find(strcmp({profile.paramList.name}, 'CHLA'));
+         if (~isempty(profile.paramNumberWithSubLevels))
+            idSub = find(profile.paramNumberWithSubLevels < idChla);
+            if (~isempty(idSub))
+               idChla = idChla + sum(profile.paramNumberOfSubLevels(idSub)) - length(idSub);
+            end
+         end
+         chlaData = profile.data(:, idChla);
+
+         if (any(chlaData ~= paramChla.fillValue))
+
+            % create array for adjusted data
+            if (isempty(profile.dataAdj))
+               paramFillValue = get_prof_param_fill_value(profile);
+               profile.paramDataMode = repmat(' ', 1, length(profile.paramList));
+               profile.dataAdj = repmat(double(paramFillValue), size(profile.data, 1), 1);
+            end
+            if (isempty(profile.dataAdjQc))
+               profile.dataAdjQc = ones(size(profile.dataAdj, 1), length(profile.paramList))*g_decArgo_qcDef;
+            end
+
+            % adjust CHLA data
+            idNoDef = find(chlaData ~= paramChla.fillValue);
+            chlaDataAdj = chlaData;
+            chlaDataAdj(idNoDef) = chlaDataAdj(idNoDef)/2;
+
+            % store adjusted CHLA data
+            profile.paramDataMode(idChla) = 'A';
+            profile.dataAdj(:, idChla) = chlaDataAdj;
+            profile.dataAdjQc(idNoDef, idChla) = g_decArgo_qcNoQc;
+            profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
+            o_tabProfiles(idProf) = profile;
+
+            % store profile adjustment information for NetCDF file
+            if (profile.direction == 'A')
+               direction = 2;
+            else
+               direction = 1;
+            end
+
+            g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
+               g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
+               {'CHLA'} {equation} {''} {comment} {''}];
+            g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
          end
       end
-      chlaData = profile.data(:, idChla);
-      
-      if (any(chlaData ~= paramChla.fillValue))
-         
-         % create array for adjusted data
-         if (isempty(profile.dataAdj))
-            paramFillValue = get_prof_param_fill_value(profile);
-            profile.paramDataMode = repmat(' ', 1, length(profile.paramList));
-            profile.dataAdj = repmat(double(paramFillValue), size(profile.data, 1), 1);
+   end
+
+else
+
+   % TEMPORARY CHLA adjustment 20250411
+
+   % retrieve PHYSIO_RATIO to adjust CHLA
+   tabPhysioRatio = get_chla_cor_fact_data([o_tabProfiles.locationLon], [o_tabProfiles.locationLat]);
+
+   % adjust CHLA data
+   for idProf = 1:length(o_tabProfiles)
+      profile = o_tabProfiles(idProf);
+      if (any(strcmp({profile.paramList.name}, 'CHLA')))
+
+         paramChla = get_netcdf_param_attributes('CHLA');
+
+         % retrieve CHLA data
+         idChla = find(strcmp({profile.paramList.name}, 'CHLA'));
+         if (~isempty(profile.paramNumberWithSubLevels))
+            idSub = find(profile.paramNumberWithSubLevels < idChla);
+            if (~isempty(idSub))
+               idChla = idChla + sum(profile.paramNumberOfSubLevels(idSub)) - length(idSub);
+            end
          end
-         if (isempty(profile.dataAdjQc))
-            profile.dataAdjQc = ones(size(profile.dataAdj, 1), length(profile.paramList))*g_decArgo_qcDef;
+         chlaData = profile.data(:, idChla);
+
+         if (any(chlaData ~= paramChla.fillValue))
+
+            physioRatio = tabPhysioRatio(idProf);
+
+            if (~isnan(physioRatio))
+
+               % create array for adjusted data
+               if (isempty(profile.dataAdj))
+                  paramFillValue = get_prof_param_fill_value(profile);
+                  profile.paramDataMode = repmat(' ', 1, length(profile.paramList));
+                  profile.dataAdj = repmat(double(paramFillValue), size(profile.data, 1), 1);
+               end
+               if (isempty(profile.dataAdjQc))
+                  profile.dataAdjQc = ones(size(profile.dataAdj, 1), length(profile.paramList))*g_decArgo_qcDef;
+               end
+
+               % adjust CHLA data
+               idNoDef = find(chlaData ~= paramChla.fillValue);
+               chlaDataAdj = chlaData;
+               chlaDataAdj(idNoDef) = chlaDataAdj(idNoDef)/physioRatio;
+
+               % store adjusted CHLA data
+               profile.paramDataMode(idChla) = 'A';
+               profile.dataAdj(:, idChla) = chlaDataAdj;
+               profile.dataAdjQc(idNoDef, idChla) = g_decArgo_qcNoQc;
+               profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
+               o_tabProfiles(idProf) = profile;
+
+               % store profile adjustment information for NetCDF file
+               if (profile.direction == 'A')
+                  direction = 2;
+               else
+                  direction = 1;
+               end
+
+               % adjustment information for NetCDF files
+               equation = 'CHLA_ADJUSTED = CHLA/PHYSIO_RATIO';
+               coefficient = sprintf('PHYSIO_RATIO = %g', physioRatio);
+               comment = 'CHLA real time adjustment (PHYSIO_RATIO from version X.X in https://doi.org/TBD)';
+
+               g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
+                  g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
+                  {'CHLA'} {equation} {coefficient} {comment} {''}];
+               g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
+            end
          end
-         
-         % adjust CHLA data
-         idNoDef = find(chlaData ~= paramChla.fillValue);
-         chlaDataAdj = chlaData;
-         chlaDataAdj(idNoDef) = chlaDataAdj(idNoDef)/2;
-         
-         % store adjusted CHLA data
-         profile.paramDataMode(idChla) = 'A';
-         profile.dataAdj(:, idChla) = chlaDataAdj;
-         profile.dataAdjQc(idNoDef, idChla) = g_decArgo_qcNoQc;
-         profile.rtParamAdjIdList = [profile.rtParamAdjIdList g_decArgo_paramProfAdjId];
-         o_tabProfiles(idProf) = profile;
-         
-         % store profile adjustment information for NetCDF file
-         if (profile.direction == 'A')
-            direction = 2;
-         else
-            direction = 1;
-         end
-         
-         g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
-            g_decArgo_paramProfAdjId profile.outputCycleNumber direction ...
-            {'CHLA'} {equation} {''} {comment} {''}];
-         g_decArgo_paramProfAdjId = g_decArgo_paramProfAdjId + 1;
       end
    end
 end
@@ -2556,7 +2647,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   06/28/2018 - RNU - creation
@@ -2763,7 +2854,7 @@ if (~isempty(profInfo))
             else
                nitrateCoefficient = sprintf('OFFSET=%g', medOffset);
             end
-            nitrateComment = 'OFFSET is the median of NITRATE(PRES_WOA)-n_an(PRES_WOA) cumulated over two months after the deployment; PRES_WOA=Profile pressure-100; n_an(LATITUDE,LONGITUDE) (closest neighbour) from WOA annual file (ftp://ftp.nodc.noaa.gov/pub/data.nodc/woa/WOA13/DATA)';
+            nitrateComment = 'OFFSET is the median of NITRATE(PRES_WOA)-n_an(PRES_WOA) cumulated over two months after the deployment; PRES_WOA=Profile pressure-100; n_an(LATITUDE,LONGITUDE) (closest neighbour) from WOA annual file (woa23_all_n00_01.nc)';
             
             % store profile adjustment information for NetCDF file
             g_decArgo_paramProfAdjInfo = [g_decArgo_paramProfAdjInfo;
@@ -2801,60 +2892,5 @@ end
 
 % update output parameters
 o_tabProfiles = a_tabProfiles;
-
-return
-
-% ------------------------------------------------------------------------------
-% Store trajectory adjustment information for NetCDF file.
-%
-% SYNTAX :
-%  store_traj_adj_info(a_adjType, a_cycleNumber, ...
-%    a_paramName, a_equation, a_coefficient, a_comment, a_date)
-%
-% INPUT PARAMETERS :
-%   a_adjType     : adjustement type
-%   a_cycleNumber : concerned cycle numbers
-%   a_paramName   : adjusted parameter
-%   a_equation    : adjustement equation
-%   a_coefficient : adjustement coefficients
-%   a_comment     : adjustement comment
-%   a_date        : adjustment date
-%
-% OUTPUT PARAMETERS :
-%
-% EXAMPLES :
-%
-% SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
-% ------------------------------------------------------------------------------
-% RELEASES :
-%   08/30/2021 - RNU - creation
-% ------------------------------------------------------------------------------
-function store_traj_adj_info(a_adjType, a_cycleNumber, ...
-   a_paramName, a_equation, a_coefficient, a_comment, a_date)
-
-% to store information on adjustments
-global g_decArgo_paramTrajAdjInfo;
-global g_decArgo_paramTrajAdjId;
-
-
-idF = [];
-if (~isempty(g_decArgo_paramTrajAdjInfo))
-   idF = find(([g_decArgo_paramTrajAdjInfo{:, 2}]' == a_adjType) & ...
-      (strcmp(g_decArgo_paramTrajAdjInfo(:, 4), a_paramName)) & ...
-      (strcmp(g_decArgo_paramTrajAdjInfo(:, 5), a_equation)) & ...
-      (strcmp(g_decArgo_paramTrajAdjInfo(:, 6), a_coefficient)) & ...
-      (strcmp(g_decArgo_paramTrajAdjInfo(:, 7), a_comment)) & ...
-      (strcmp(g_decArgo_paramTrajAdjInfo(:, 8), a_date)));
-end
-if (isempty(idF))
-   g_decArgo_paramTrajAdjInfo = [g_decArgo_paramTrajAdjInfo;
-      g_decArgo_paramTrajAdjId a_adjType a_cycleNumber ...
-      {a_paramName} {a_equation} {a_coefficient} {a_comment} {a_date}];
-   g_decArgo_paramTrajAdjId = g_decArgo_paramTrajAdjId + 1;
-else
-   cyNumList = unique([g_decArgo_paramTrajAdjInfo{idF, 3} a_cycleNumber]);
-   g_decArgo_paramTrajAdjInfo{idF, 3} = cyNumList;
-end
 
 return

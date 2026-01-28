@@ -45,7 +45,7 @@
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - V 1.0: creation
@@ -54,6 +54,11 @@
 %   12/04/2023 - RNU - V 1.2: uninitialized variable.
 %   01/22/2024 - RNU - V 1.3: uninitialized variable.
 %   06/24/2024 - RNU - V 1.4: check that Qc prof and S prof sizes are identical.
+%   07/16/2024 - RNU - V 1.5: manage VSS with only 'n/a'.
+%   07/16/2024 - RNU - V 1.6: bug in determining if PROFILE_PARAM_QC should be
+%                             updated (PROFILE_PARAM_QC should be computed with
+%                             PARAM_ADJUSTED_QC if exists PARAM_QC otherwise).
+%   11/14/2024 - RNU - V 1.7: manage <PARAM>_STD and <PARAM>_MED parameters.
 % ------------------------------------------------------------------------------
 function nc_copy_synthetic_profile_qc_rt(varargin)
 
@@ -107,7 +112,7 @@ g_cocsq_realtimeFlag = 1;
 
 % program version
 global g_cocsq_ncCopySyntheticProfileQcVersion;
-g_cocsq_ncCopySyntheticProfileQcVersion = '1.4';
+g_cocsq_ncCopySyntheticProfileQcVersion = '1.7';
 
 % DOM node of XML report
 global g_cocsq_xmlReportDOMNode;
@@ -254,7 +259,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -307,7 +312,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -407,7 +412,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -558,7 +563,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
@@ -619,7 +624,7 @@ return
 % EXAMPLES :
 %
 % SEE ALSO :
-% AUTHORS  : Jean-Philippe Rannou (Altran)(jean-philippe.rannou@altran.com)
+% AUTHOR : Jean-Philippe Rannou (Capgemini) (jean.philippe.rannou@partenaire-exterieur.ifremer.fr)
 % ------------------------------------------------------------------------------
 % RELEASES :
 %   09/20/2023 - RNU - creation
